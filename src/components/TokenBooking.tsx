@@ -1,0 +1,162 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { Calendar, Clock, User, Stethoscope } from "lucide-react";
+
+interface TokenBookingProps {
+  onTokenIssued: (tokenData: any) => void;
+  currentNumber: number;
+  queueLength: number;
+}
+
+export function TokenBooking({ onTokenIssued, currentNumber, queueLength }: TokenBookingProps) {
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [department, setDepartment] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const departments = [
+    "General Medicine",
+    "Cardiology", 
+    "Orthopedics",
+    "Dermatology",
+    "Pediatrics",
+    "ENT",
+    "Ophthalmology"
+  ];
+
+  const estimatedWaitTime = Math.max(0, (queueLength - (currentNumber - 1)) * 5);
+
+  const handleBookToken = async () => {
+    if (!name || !phone || !department) {
+      toast({
+        title: "Please fill all fields",
+        description: "Name, phone and department are required",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+    
+    // Simulate booking process
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const tokenNumber = queueLength + 1;
+    const tokenData = {
+      id: Date.now(),
+      tokenNumber,
+      name,
+      phone,
+      department,
+      bookedAt: new Date(),
+      estimatedWaitTime: estimatedWaitTime + 5
+    };
+
+    onTokenIssued(tokenData);
+    
+    toast({
+      title: "Token Booked Successfully!",
+      description: `Your token number is ${tokenNumber}`,
+    });
+
+    // Reset form
+    setName("");
+    setPhone("");
+    setDepartment("");
+    setLoading(false);
+  };
+
+  return (
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader className="text-center">
+        <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
+          <Stethoscope className="w-6 h-6 text-primary" />
+        </div>
+        <CardTitle className="text-2xl">Book Your Token</CardTitle>
+        <CardDescription>
+          Skip the queue - Get your token online
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-primary">{currentNumber}</div>
+            <div className="text-sm text-muted-foreground">Now Serving</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-accent">{queueLength}</div>
+            <div className="text-sm text-muted-foreground">In Queue</div>
+          </div>
+        </div>
+
+        {estimatedWaitTime > 0 && (
+          <div className="flex items-center gap-2 p-3 bg-warning/10 rounded-lg border border-warning/20">
+            <Clock className="w-4 h-4 text-warning" />
+            <span className="text-sm">
+              Estimated wait: <span className="font-semibold">{estimatedWaitTime} mins</span>
+            </span>
+          </div>
+        )}
+        
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="name" className="flex items-center gap-2">
+              <User className="w-4 h-4" />
+              Full Name
+            </Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your full name"
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input
+              id="phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Enter your phone number"
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="department">Department</Label>
+            <Select value={department} onValueChange={setDepartment}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select department" />
+              </SelectTrigger>
+              <SelectContent>
+                {departments.map((dept) => (
+                  <SelectItem key={dept} value={dept}>
+                    {dept}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <Button 
+          onClick={handleBookToken} 
+          disabled={loading}
+          variant="medical"
+          className="w-full"
+          size="lg"
+        >
+          {loading ? "Booking..." : "Book Token"}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
