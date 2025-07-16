@@ -10,7 +10,7 @@ There are several ways of editing your application.
 
 **Use Lovable**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/3faacdf9-b969-4533-a7af-63dd1516a062) and start prompting.
+Simply visit the [Lovable Project](https://lovable.dev/projects/Clinicqueue) and start prompting.
 
 Changes made via Lovable will be committed automatically to this repo.
 
