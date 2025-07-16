@@ -31,7 +31,11 @@ export function AdminPanel({
     }
   };
 
-  const upcomingTokens = tokens.filter(token => token.tokenNumber > currentNumber).slice(0, 5);
+  // Only count tokens that are not yet served
+  const waitingTokens = tokens.filter(token => token.tokenNumber >= currentNumber);
+  const waitingCount = waitingTokens.length;
+  // Show current number as 0-based
+  const displayCurrentNumber = currentNumber - 1;
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
@@ -47,12 +51,12 @@ export function AdminPanel({
           {/* Current Status */}
           <div className="grid md:grid-cols-3 gap-4">
             <div className="text-center p-4 bg-primary/5 rounded-lg border border-primary/20">
-              <div className="text-3xl font-bold text-primary mb-1">{currentNumber}</div>
+              <div className="text-3xl font-bold text-primary mb-1">{displayCurrentNumber}</div>
               <div className="text-sm text-muted-foreground">Current Number</div>
             </div>
             
             <div className="text-center p-4 bg-accent/5 rounded-lg border border-accent/20">
-              <div className="text-3xl font-bold text-accent mb-1">{queueLength}</div>
+              <div className="text-3xl font-bold text-accent mb-1">{waitingCount}</div>
               <div className="text-sm text-muted-foreground">Total in Queue</div>
             </div>
             
@@ -69,7 +73,7 @@ export function AdminPanel({
               variant="medical"
               size="lg"
               className="flex-1"
-              disabled={currentNumber >= queueLength}
+              disabled={waitingCount === 0}
             >
               <SkipForward className="w-4 h-4 mr-2" />
               Call Next Patient
@@ -105,13 +109,13 @@ export function AdminPanel({
         </CardHeader>
         
         <CardContent>
-          {upcomingTokens.length === 0 ? (
+          {waitingTokens.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No patients in queue
             </div>
           ) : (
             <div className="space-y-3">
-              {upcomingTokens.map((token, index) => {
+              {waitingTokens.map((token, index) => {
                 const isNext = index === 0;
                 return (
                   <div 

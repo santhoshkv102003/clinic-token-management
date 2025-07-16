@@ -32,6 +32,12 @@ export function TokenBooking({ onTokenIssued, currentNumber, queueLength }: Toke
 
   const estimatedWaitTime = Math.max(0, (queueLength - (currentNumber - 1)) * 5);
 
+  // Show current number as 0-based
+  const displayCurrentNumber = currentNumber - 1;
+
+  // Only count tokens that are not yet served
+  const waitingCount = queueLength - (currentNumber - 1);
+
   const handleBookToken = async () => {
     if (!name || !phone || !department) {
       toast({
@@ -87,11 +93,11 @@ export function TokenBooking({ onTokenIssued, currentNumber, queueLength }: Toke
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
           <div className="text-center">
-            <div className="text-2xl font-bold text-primary">{currentNumber}</div>
+            <div className="text-2xl font-bold text-primary">{displayCurrentNumber}</div>
             <div className="text-sm text-muted-foreground">Now Serving</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-accent">{queueLength}</div>
+            <div className="text-2xl font-bold text-accent">{waitingCount}</div>
             <div className="text-sm text-muted-foreground">In Queue</div>
           </div>
         </div>

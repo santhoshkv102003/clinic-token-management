@@ -9,6 +9,15 @@ interface QueueDisplayProps {
 }
 
 export function QueueDisplay({ currentNumber, queueLength, recentTokens }: QueueDisplayProps) {
+  // Only count tokens that are not yet served
+  // Now Serving starts at 0
+  const waitingTokens = recentTokens.filter(token => token.tokenNumber >= currentNumber);
+  const waitingCount = waitingTokens.length;
+  const estimatedWait = waitingCount * 5;
+
+  // If there are tokens, set currentNumber to 0 for the first token
+  const displayCurrentNumber = recentTokens.length > 0 ? currentNumber - 1 : 0;
+
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
       {/* Main Display */}
@@ -24,7 +33,7 @@ export function QueueDisplay({ currentNumber, queueLength, recentTokens }: Queue
           <div className="grid md:grid-cols-3 gap-6">
             {/* Current Number */}
             <div className="p-6 bg-gradient-to-br from-primary/10 to-primary-glow/10 rounded-xl border-2 border-primary/20">
-              <div className="text-6xl font-bold text-primary mb-2">{currentNumber}</div>
+              <div className="text-6xl font-bold text-primary mb-2">{displayCurrentNumber}</div>
               <div className="text-lg font-medium text-primary">Now Serving</div>
               <div className="text-sm text-muted-foreground mt-1">Please proceed to counter</div>
             </div>
@@ -34,20 +43,18 @@ export function QueueDisplay({ currentNumber, queueLength, recentTokens }: Queue
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Users className="w-6 h-6 text-accent" />
               </div>
-              <div className="text-4xl font-bold text-accent mb-2">{queueLength}</div>
+              <div className="text-4xl font-bold text-accent mb-2">{waitingCount}</div>
               <div className="text-lg font-medium">In Queue</div>
               <div className="text-sm text-muted-foreground">Patients waiting</div>
             </div>
             
             {/* Average Wait */}
-            <div className="p-6 bg-warning/5 rounded-xl border border-warning/20">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Clock className="w-6 h-6 text-warning" />
-              </div>
-              <div className="text-4xl font-bold text-warning mb-2">{queueLength * 5}</div>
-              <div className="text-lg font-medium">Minutes</div>
-              <div className="text-sm text-muted-foreground">Estimated wait</div>
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Clock className="w-6 h-6 text-warning" />
             </div>
+            <div className="text-4xl font-bold text-warning mb-2">{estimatedWait}</div>
+            <div className="text-lg font-medium">Minutes</div>
+            <div className="text-sm text-muted-foreground">Estimated wait</div>
           </div>
         </CardContent>
       </Card>
