@@ -116,7 +116,14 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div
+      className="min-h-screen"
+      style={{
+        backgroundImage: "url('/stethoscope-bg.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
       {/* Header */}
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
@@ -155,8 +162,11 @@ const Index = () => {
             variant="outline"
             className="flex-1"
             onClick={() => {
-              localStorage.removeItem('adminLoggedIn');
-              navigate('/admin');
+              if (localStorage.getItem('adminLoggedIn') === 'true') {
+                navigate('/admin/panel');
+              } else {
+                navigate('/admin');
+              }
             }}
           >
             Admin Booking

@@ -7,10 +7,14 @@ const AdminActivity = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center py-8">
+    <div className="min-h-screen flex flex-col items-center justify-center py-8 bg-[url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1500&q=80')] bg-cover bg-center bg-no-repeat">
+      <div className="absolute inset-0 bg-white/80 -z-10" />
       <div className="w-full max-w-xl">
-        <Button variant="outline" className="mb-6" onClick={() => navigate('/admin')}>
+        <Button variant="outline" className="mb-6 mt-2" onClick={() => navigate('/admin')}>
           ← Back to Admin Panel
+        </Button>
+        <Button variant="destructive" className="mb-6" style={{ marginTop: '3cm' }} onClick={() => {/* TODO: Add logout logic */}}>
+          Logout
         </Button>
         <div className="bg-card rounded-lg border p-6 flex flex-col">
           <div className="font-semibold text-lg mb-4">Patient Activity</div>

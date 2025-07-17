@@ -1,10 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Monitor, Users, Clock, CheckCircle } from "lucide-react";
+import { Monitor, Users, Clock, CheckCircle, Home } from "lucide-react";
 import { useQueue } from "../QueueContext";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export function QueueDisplay() {
   const { currentNumber, tokens } = useQueue();
+  const navigate = useNavigate();
+  const location = useLocation();
   // Only count tokens that are not yet served
   // Now Serving starts at 0
   const waitingTokens = tokens.filter(token => token.tokenNumber >= currentNumber);
@@ -16,13 +19,20 @@ export function QueueDisplay() {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
+      {/* Home Logo OUTSIDE the Card */}
+      {location.pathname !== "/" && (
+        <button
+          onClick={() => navigate("/")}
+          className="mb-4 hover:bg-primary/10 rounded-full p-2 transition"
+          aria-label="Go to Home"
+          style={{ border: "none", background: "none", cursor: "pointer" }}
+        >
+          <Home className="w-8 h-8 text-primary" />
+        </button>
+      )}
       {/* Main Display */}
       <Card className="text-center">
         <CardHeader className="flex flex-col space-y-1.5 p-6">
-          {/* Remove Monitor icon and its container */}
-          {/* <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-2">
-            <Monitor className="w-8 h-8 text-primary" />
-          </div> */}
           <CardTitle className="font-semibold tracking-tight text-3xl">Queue Status</CardTitle>
         </CardHeader>
         
