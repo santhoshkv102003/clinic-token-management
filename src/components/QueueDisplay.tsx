@@ -22,11 +22,12 @@ export function QueueDisplay({ currentNumber, queueLength, recentTokens }: Queue
     <div className="w-full max-w-4xl mx-auto space-y-6">
       {/* Main Display */}
       <Card className="text-center">
-        <CardHeader>
-          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-2">
+        <CardHeader className="flex flex-col space-y-1.5 p-6">
+          {/* Remove Monitor icon and its container */}
+          {/* <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-2">
             <Monitor className="w-8 h-8 text-primary" />
-          </div>
-          <CardTitle className="text-3xl">Queue Status</CardTitle>
+          </div> */}
+          <CardTitle className="font-semibold tracking-tight text-3xl">Queue Status</CardTitle>
         </CardHeader>
         
         <CardContent>

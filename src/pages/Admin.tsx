@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
@@ -10,8 +10,11 @@ const Admin = () => {
   const [adminPassword, setAdminPassword] = useState("");
   const navigate = useNavigate();
 
-  // Always clear login on mount so login page is always shown
-  localStorage.removeItem(ADMIN_LOGIN_KEY);
+  useEffect(() => {
+    if (localStorage.getItem(ADMIN_LOGIN_KEY) === 'true') {
+      navigate('/admin/panel');
+    }
+  }, [navigate]);
 
   const handleAdminLogin = (e) => {
     e.preventDefault();
