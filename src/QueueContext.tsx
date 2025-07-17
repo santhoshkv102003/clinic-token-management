@@ -22,7 +22,11 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [tokens, setTokens] = useState<Token[]>([]);
 
   const nextNumber = () => {
-    setCurrentNumber((prev) => prev + 1);
+    // Only increment if there are patients in the queue
+    const waitingTokens = tokens.filter(token => token.tokenNumber >= currentNumber);
+    if (waitingTokens.length > 0) {
+      setCurrentNumber((prev) => prev + 1);
+    }
   };
 
   const resetQueue = () => {
