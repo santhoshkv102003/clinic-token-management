@@ -28,6 +28,11 @@ const Index = () => {
   const adminBookingRef = useRef<HTMLDivElement | null>(null);
   const bookingButtonsRef = useRef<HTMLDivElement | null>(null);
   const [shouldScrollToButtons, setShouldScrollToButtons] = useState(false);
+  const [adminTab, setAdminTab] = useState<'booking' | 'call' | 'activity'>('booking');
+  const [adminSection, setAdminSection] = useState<'booking' | 'call' | 'activity' | null>(null);
+  const bookingRef = useRef<HTMLDivElement | null>(null);
+  const callNextRef = useRef<HTMLDivElement | null>(null);
+  const activityRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!showPatientBooking && shouldScrollToButtons && bookingButtonsRef.current) {
@@ -93,6 +98,19 @@ const Index = () => {
       }, 0);
       return next;
     });
+  };
+
+  const handleAdminSection = (section: 'booking' | 'call' | 'activity') => {
+    setAdminSection(section);
+    setTimeout(() => {
+      if (section === 'booking' && bookingRef.current) {
+        bookingRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else if (section === 'call' && callNextRef.current) {
+        callNextRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else if (section === 'activity' && activityRef.current) {
+        activityRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 0);
   };
 
   return (
@@ -187,26 +205,103 @@ const Index = () => {
                 <Button type="submit" className="w-full" variant="medical">Login as Admin</Button>
               </form>
             ) : (
-              <>
-                <TokenBooking
-                  key={adminBookingKey}
-                  onTokenIssued={(tokenData) => {
-                    handleTokenIssued(tokenData);
-                    setAdminBookingKey((k) => k + 1); // reset form
-                  }}
-                  currentNumber={currentNumber}
-                  queueLength={tokens.length}
-                />
-                <div className="mt-8">
-                  <AdminPanel
-                    currentNumber={currentNumber}
-                    queueLength={tokens.length}
-                    tokens={tokens}
-                    onNextNumber={handleNextNumber}
-                    onResetQueue={handleResetQueue}
-                  />
+              <div className="flex flex-col gap-8 max-w-xl mx-auto">
+                {/* Admin Section Buttons */}
+                <div className="flex flex-col gap-4 mb-8">
+                  <Button
+                    variant={adminSection === 'booking' ? 'medical' : 'outline'}
+                    className="w-full text-lg py-6"
+                    onClick={() => handleAdminSection('booking')}
+                  >
+                    Booking Patient
+                  </Button>
+                  <Button
+                    variant={adminSection === 'call' ? 'medical' : 'outline'}
+                    className="w-full text-lg py-6"
+                    onClick={() => handleAdminSection('call')}
+                  >
+                    Call Next Patient
+                  </Button>
+                  <Button
+                    variant={adminSection === 'activity' ? 'medical' : 'outline'}
+                    className="w-full text-lg py-6"
+                    onClick={() => handleAdminSection('activity')}
+                  >
+                    Patient Activity
+                  </Button>
                 </div>
-              </>
+                {/* Admin Section Content */}
+                {adminSection === 'booking' && (
+                  <div ref={bookingRef}>
+                    <TokenBooking
+                      key={adminBookingKey}
+                      onTokenIssued={(tokenData) => {
+                        handleTokenIssued(tokenData);
+                        setAdminBookingKey((k) => k + 1); // reset form
+                      }}
+                      currentNumber={currentNumber}
+                      queueLength={tokens.length}
+                    />
+                  </div>
+                )}
+                {adminSection === 'call' && (
+                  <div ref={callNextRef} className="bg-card rounded-lg border p-6 flex flex-col items-center justify-center">
+                    <div className="text-3xl font-bold text-primary mb-2">{currentNumber - 1}</div>
+                    <div className="text-sm text-muted-foreground mb-4">Current Number</div>
+                    <Button 
+                      onClick={handleNextNumber}
+                      variant="medical"
+                      size="lg"
+                      className="w-full mb-2"
+                      disabled={tokens.filter(token => token.tokenNumber >= currentNumber).length === 0}
+                    >
+                      Call Next Patient
+                    </Button>
+                    <Button 
+                      onClick={handleResetQueue}
+                      variant="outline"
+                      size="lg"
+                      className="w-full"
+                    >
+                      Reset Queue
+                    </Button>
+                  </div>
+                )}
+                {adminSection === 'activity' && (
+                  <div ref={activityRef} className="bg-card rounded-lg border p-6 flex flex-col">
+                    <div className="font-semibold text-lg mb-4">Patient Activity</div>
+                    {/* Only show visited patients */}
+                    {tokens.filter(token => token.tokenNumber < currentNumber).length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground flex-1 flex items-center justify-center">
+                        No patients have visited yet
+                      </div>
+                    ) : (
+                      <div className="space-y-3 overflow-y-auto flex-1">
+                        {tokens.filter(token => token.tokenNumber < currentNumber).map((token) => (
+                          <div 
+                            key={token.id} 
+                            className="flex items-center justify-between p-4 rounded-lg border bg-muted/30 border-border"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold bg-primary/10 text-primary">#{token.tokenNumber}</div>
+                              <div>
+                                <div className="font-medium">{token.name}</div>
+                                <div className="text-sm text-muted-foreground">{token.department}</div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <span className="inline-block bg-accent text-white text-xs px-2 py-1 rounded">Visited</span>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {new Date(token.bookedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
           </section>
         )}

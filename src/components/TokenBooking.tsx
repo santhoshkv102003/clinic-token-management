@@ -84,10 +84,8 @@ export function TokenBooking({ onTokenIssued, currentNumber, queueLength }: Toke
         <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
           <Stethoscope className="w-6 h-6 text-primary" />
         </div>
-        <CardTitle className="text-2xl">Book Your Token</CardTitle>
-        <CardDescription>
-          Skip the queue - Get your token online
-        </CardDescription>
+        <CardTitle className="font-semibold tracking-tight text-2xl">Booking Token</CardTitle>
+        <p className="text-sm text-muted-foreground">Get your token offline</p>
       </CardHeader>
       
       <CardContent className="space-y-4">
