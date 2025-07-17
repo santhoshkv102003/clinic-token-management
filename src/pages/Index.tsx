@@ -10,8 +10,10 @@ import { Heart, Shield, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [currentNumber, setCurrentNumber] = useState(1);
   const [tokens, setTokens] = useState<any[]>([]);
   const [userToken, setUserToken] = useState<any>(null);
@@ -156,7 +158,7 @@ const Index = () => {
           <Button
             variant="outline"
             className="flex-1"
-            onClick={handleShowAdminBooking}
+            onClick={() => navigate('/admin')}
           >
             Admin Booking
           </Button>
@@ -174,135 +176,6 @@ const Index = () => {
               currentNumber={currentNumber}
               queueLength={tokens.length}
             />
-          </section>
-        )}
-
-        {/* Admin Booking Section */}
-        {showAdminBooking && (
-          <section id="admin-booking" className="scroll-mt-24" ref={adminBookingRef}>
-            {!adminLoggedIn ? (
-              <form onSubmit={handleAdminLogin} className="max-w-md mx-auto space-y-4 p-6 bg-card rounded-lg border">
-                <div>
-                  <label className="block mb-1 font-medium">Username</label>
-                  <Input
-                    type="text"
-                    value={adminUsername}
-                    onChange={e => setAdminUsername(e.target.value)}
-                    placeholder="Enter admin username"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1 font-medium">Password</label>
-                  <Input
-                    type="password"
-                    value={adminPassword}
-                    onChange={e => setAdminPassword(e.target.value)}
-                    placeholder="Enter admin password"
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" variant="medical">Login as Admin</Button>
-              </form>
-            ) : (
-              <div className="flex flex-col gap-8 max-w-xl mx-auto">
-                {/* Admin Section Buttons */}
-                <div className="flex flex-col gap-4 mb-8">
-                  <Button
-                    variant={adminSection === 'booking' ? 'medical' : 'outline'}
-                    className="w-full text-lg py-6"
-                    onClick={() => handleAdminSection('booking')}
-                  >
-                    Booking Patient
-                  </Button>
-                  <Button
-                    variant={adminSection === 'call' ? 'medical' : 'outline'}
-                    className="w-full text-lg py-6"
-                    onClick={() => handleAdminSection('call')}
-                  >
-                    Call Next Patient
-                  </Button>
-                  <Button
-                    variant={adminSection === 'activity' ? 'medical' : 'outline'}
-                    className="w-full text-lg py-6"
-                    onClick={() => handleAdminSection('activity')}
-                  >
-                    Patient Activity
-                  </Button>
-                </div>
-                {/* Admin Section Content */}
-                {adminSection === 'booking' && (
-                  <div ref={bookingRef}>
-                    <TokenBooking
-                      key={adminBookingKey}
-                      onTokenIssued={(tokenData) => {
-                        handleTokenIssued(tokenData);
-                        setAdminBookingKey((k) => k + 1); // reset form
-                      }}
-                      currentNumber={currentNumber}
-                      queueLength={tokens.length}
-                    />
-                  </div>
-                )}
-                {adminSection === 'call' && (
-                  <div ref={callNextRef} className="bg-card rounded-lg border p-6 flex flex-col items-center justify-center">
-                    <div className="text-3xl font-bold text-primary mb-2">{currentNumber - 1}</div>
-                    <div className="text-sm text-muted-foreground mb-4">Current Number</div>
-                    <Button 
-                      onClick={handleNextNumber}
-                      variant="medical"
-                      size="lg"
-                      className="w-full mb-2"
-                      disabled={tokens.filter(token => token.tokenNumber >= currentNumber).length === 0}
-                    >
-                      Call Next Patient
-                    </Button>
-                    <Button 
-                      onClick={handleResetQueue}
-                      variant="outline"
-                      size="lg"
-                      className="w-full"
-                    >
-                      Reset Queue
-                    </Button>
-                  </div>
-                )}
-                {adminSection === 'activity' && (
-                  <div ref={activityRef} className="bg-card rounded-lg border p-6 flex flex-col">
-                    <div className="font-semibold text-lg mb-4">Patient Activity</div>
-                    {/* Only show visited patients */}
-                    {tokens.filter(token => token.tokenNumber < currentNumber).length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground flex-1 flex items-center justify-center">
-                        No patients have visited yet
-                      </div>
-                    ) : (
-                      <div className="space-y-3 overflow-y-auto flex-1">
-                        {tokens.filter(token => token.tokenNumber < currentNumber).map((token) => (
-                          <div 
-                            key={token.id} 
-                            className="flex items-center justify-between p-4 rounded-lg border bg-muted/30 border-border"
-                          >
-                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold bg-primary/10 text-primary">#{token.tokenNumber}</div>
-                              <div>
-                                <div className="font-medium">{token.name}</div>
-                                <div className="text-sm text-muted-foreground">{token.department}</div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <span className="inline-block bg-accent text-white text-xs px-2 py-1 rounded">Visited</span>
-                              <div className="text-xs text-muted-foreground mt-1">
-                                {new Date(token.bookedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
           </section>
         )}
       </div>
