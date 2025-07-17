@@ -36,21 +36,21 @@ const AdminPanel = () => {
           <div className="flex flex-col gap-4 mb-8">
             <Button
               variant="medical"
-              className="w-full text-lg py-6"
+              className="w-80 mx-auto text-lg py-6"
               onClick={() => navigate('/admin/booking')}
             >
               Booking Patient
             </Button>
             <Button
               variant="medical"
-              className="w-full text-lg py-6"
+              className="w-80 mx-auto text-lg py-6"
               onClick={nextNumber}
             >
               Call Next Patient
             </Button>
             <Button
               variant="medical"
-              className="w-full text-lg py-6"
+              className="w-80 mx-auto text-lg py-6"
               onClick={() => navigate('/admin/activity')}
             >
               Patient Activity
