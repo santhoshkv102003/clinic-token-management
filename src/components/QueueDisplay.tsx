@@ -33,13 +33,16 @@ export function QueueDisplay({ currentNumber, queueLength, recentTokens }: Queue
           <div className="grid md:grid-cols-3 gap-6">
             {/* Current Number */}
             <div className="p-6 bg-gradient-to-br from-primary/10 to-primary-glow/10 rounded-xl border-2 border-primary/20">
-              <div className="text-6xl font-bold text-primary mb-2">{displayCurrentNumber}</div>
-              <div className="text-lg font-medium text-primary">Now Serving</div>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Users className="w-6 h-6 text-primary" />
+              </div>
+              <div className="text-4xl font-bold text-primary mb-2">{displayCurrentNumber}</div>
+              <div className="text-lg font-medium text-black">Now Serving</div>
               <div className="text-sm text-muted-foreground mt-1">Please proceed to counter</div>
             </div>
             
             {/* Queue Length */}
-            <div className="p-6 bg-accent/5 rounded-xl border border-accent/20">
+            <div className="p-6 bg-gradient-to-br from-primary/10 to-primary-glow/10 rounded-xl border-2 border-primary/20">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Users className="w-6 h-6 text-accent" />
               </div>
@@ -49,53 +52,14 @@ export function QueueDisplay({ currentNumber, queueLength, recentTokens }: Queue
             </div>
             
             {/* Average Wait */}
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Clock className="w-6 h-6 text-warning" />
-            </div>
-            <div className="text-4xl font-bold text-warning mb-2">{estimatedWait}</div>
-            <div className="text-lg font-medium">Minutes</div>
-            <div className="text-sm text-muted-foreground">Estimated wait</div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="w-5 h-5" />
-            Recent Activity
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {recentTokens.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No recent tokens yet
+            <div className="p-6 bg-gradient-to-br from-primary/10 to-primary-glow/10 rounded-xl border-2 border-primary/20">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Clock className="w-6 h-6 text-warning" />
               </div>
-            ) : (
-              recentTokens.slice(-5).reverse().map((token) => (
-                <div key={token.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                      <span className="font-bold text-primary">#{token.tokenNumber}</span>
-                    </div>
-                    <div>
-                      <div className="font-medium">{token.name}</div>
-                      <div className="text-sm text-muted-foreground">{token.department}</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <Badge variant="secondary">
-                      {new Date(token.bookedAt).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </Badge>
-                  </div>
-                </div>
-              ))
-            )}
+              <div className="text-4xl font-bold text-warning mb-2">{estimatedWait}</div>
+              <div className="text-lg font-medium">Minutes</div>
+              <div className="text-sm text-muted-foreground">Estimated Waiting Time</div>
+            </div>
           </div>
         </CardContent>
       </Card>
