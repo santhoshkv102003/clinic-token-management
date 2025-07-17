@@ -154,7 +154,10 @@ const Index = () => {
           <Button
             variant="outline"
             className="flex-1"
-            onClick={() => navigate('/admin')}
+            onClick={() => {
+              localStorage.removeItem('adminLoggedIn');
+              navigate('/admin');
+            }}
           >
             Admin Booking
           </Button>
