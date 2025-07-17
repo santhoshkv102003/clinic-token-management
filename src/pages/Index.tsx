@@ -11,11 +11,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useQueue } from "../QueueContext";
 
 const Index = () => {
   const navigate = useNavigate();
-  const [currentNumber, setCurrentNumber] = useState(1);
-  const [tokens, setTokens] = useState<any[]>([]);
+  const { currentNumber, tokens } = useQueue();
   const [userToken, setUserToken] = useState<any>(null);
   const [adminLoggedIn, setAdminLoggedIn] = useState(false);
   const [adminUsername, setAdminUsername] = useState("");
@@ -44,7 +44,7 @@ const Index = () => {
   }, [showPatientBooking, shouldScrollToButtons]);
 
   const handleTokenIssued = (tokenData: any, fromPatientBooking = false) => {
-    setTokens(prev => [...prev, tokenData]);
+    // setTokens(prev => [...prev, tokenData]); // This line is removed as per the edit hint
     setUserToken(tokenData);
     if (fromPatientBooking) {
       setShowPatientBooking(false);
@@ -53,12 +53,12 @@ const Index = () => {
   };
 
   const handleNextNumber = () => {
-    setCurrentNumber(prev => prev + 1);
+    // setCurrentNumber(prev => prev + 1); // This line is removed as per the edit hint
   };
 
   const handleResetQueue = () => {
-    setCurrentNumber(1);
-    setTokens([]);
+    // setCurrentNumber(1); // This line is removed as per the edit hint
+    // setTokens([]); // This line is removed as per the edit hint
     setUserToken(null);
   };
 
@@ -140,11 +140,7 @@ const Index = () => {
 
       <div className="container mx-auto px-4 py-8 space-y-12">
         {/* Always show Queue Status at the top */}
-        <QueueDisplay 
-          currentNumber={currentNumber}
-          queueLength={tokens.length}
-          recentTokens={tokens}
-        />
+        <QueueDisplay />
 
         {/* Booking Buttons */}
         <div className="flex flex-col gap-4 justify-center mt-8 max-w-xs mx-auto" ref={bookingButtonsRef}>
@@ -167,15 +163,7 @@ const Index = () => {
         {/* Book Patient Section */}
         {showPatientBooking && (
           <section id="book-patient" className="scroll-mt-24" ref={bookPatientRef}>
-            <TokenBooking
-              key={patientBookingKey}
-              onTokenIssued={(tokenData) => {
-                handleTokenIssued(tokenData, true);
-                setPatientBookingKey((k) => k + 1); // reset form
-              }}
-              currentNumber={currentNumber}
-              queueLength={tokens.length}
-            />
+            <TokenBooking onBooked={() => setShowPatientBooking(false)} />
           </section>
         )}
       </div>

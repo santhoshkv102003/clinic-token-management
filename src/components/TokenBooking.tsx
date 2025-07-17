@@ -1,24 +1,20 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Clock, User, Stethoscope } from "lucide-react";
+import { Clock, User, Stethoscope } from "lucide-react";
+import { useQueue } from "../QueueContext";
 
-interface TokenBookingProps {
-  onTokenIssued: (tokenData: any) => void;
-  currentNumber: number;
-  queueLength: number;
-}
-
-export function TokenBooking({ onTokenIssued, currentNumber, queueLength }: TokenBookingProps) {
+export function TokenBooking({ onBooked }: { onBooked?: () => void }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [department, setDepartment] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { currentNumber, tokens, bookToken } = useQueue();
 
   const departments = [
     "General Medicine",
@@ -30,13 +26,8 @@ export function TokenBooking({ onTokenIssued, currentNumber, queueLength }: Toke
     "Ophthalmology"
   ];
 
+  const queueLength = tokens.length;
   const estimatedWaitTime = Math.max(0, (queueLength - (currentNumber - 1)) * 5);
-
-  // Show current number as 0-based
-  const displayCurrentNumber = currentNumber - 1;
-
-  // Only count tokens that are not yet served
-  const waitingCount = queueLength - (currentNumber - 1);
 
   const handleBookToken = async () => {
     if (!name || !phone || !department) {
@@ -49,33 +40,25 @@ export function TokenBooking({ onTokenIssued, currentNumber, queueLength }: Toke
     }
 
     setLoading(true);
-    
-    // Simulate booking process
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const tokenNumber = queueLength + 1;
-    const tokenData = {
-      id: Date.now(),
-      tokenNumber,
+
+    bookToken({
       name,
       phone,
       department,
-      bookedAt: new Date(),
-      estimatedWaitTime: estimatedWaitTime + 5
-    };
-
-    onTokenIssued(tokenData);
-    
-    toast({
-      title: "Token Booked Successfully!",
-      description: `Your token number is ${tokenNumber}`,
+      bookedAt: new Date().toISOString()
     });
 
-    // Reset form
+    toast({
+      title: "Token Booked Successfully!",
+      description: `Your token has been added to the queue.`,
+    });
+
     setName("");
     setPhone("");
     setDepartment("");
     setLoading(false);
+    if (onBooked) onBooked();
   };
 
   return (
@@ -87,19 +70,8 @@ export function TokenBooking({ onTokenIssued, currentNumber, queueLength }: Toke
         <CardTitle className="font-semibold tracking-tight text-2xl">Booking Token</CardTitle>
         <p className="text-sm text-muted-foreground">Get your token offline</p>
       </CardHeader>
-      
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-primary">{displayCurrentNumber}</div>
-            <div className="text-sm text-muted-foreground">Now Serving</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-accent">{waitingCount}</div>
-            <div className="text-sm text-muted-foreground">In Queue</div>
-          </div>
-        </div>
-
+        {/* Removed Now Serving and In Queue grid */}
         {estimatedWaitTime > 0 && (
           <div className="flex items-center gap-2 p-3 bg-warning/10 rounded-lg border border-warning/20">
             <Clock className="w-4 h-4 text-warning" />
@@ -108,7 +80,6 @@ export function TokenBooking({ onTokenIssued, currentNumber, queueLength }: Toke
             </span>
           </div>
         )}
-        
         <div className="space-y-4">
           <div>
             <Label htmlFor="name" className="flex items-center gap-2">
@@ -122,7 +93,6 @@ export function TokenBooking({ onTokenIssued, currentNumber, queueLength }: Toke
               placeholder="Enter your full name"
             />
           </div>
-          
           <div>
             <Label htmlFor="phone">Phone Number</Label>
             <Input
@@ -133,7 +103,6 @@ export function TokenBooking({ onTokenIssued, currentNumber, queueLength }: Toke
               placeholder="Enter your phone number"
             />
           </div>
-          
           <div>
             <Label htmlFor="department">Department</Label>
             <Select value={department} onValueChange={setDepartment}>
@@ -150,7 +119,6 @@ export function TokenBooking({ onTokenIssued, currentNumber, queueLength }: Toke
             </Select>
           </div>
         </div>
-        
         <Button 
           onClick={handleBookToken} 
           disabled={loading}

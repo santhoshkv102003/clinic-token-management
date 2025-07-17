@@ -1,22 +1,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Monitor, Users, Clock, CheckCircle } from "lucide-react";
+import { useQueue } from "../QueueContext";
 
-interface QueueDisplayProps {
-  currentNumber: number;
-  queueLength: number;
-  recentTokens: any[];
-}
-
-export function QueueDisplay({ currentNumber, queueLength, recentTokens }: QueueDisplayProps) {
+export function QueueDisplay() {
+  const { currentNumber, tokens } = useQueue();
   // Only count tokens that are not yet served
   // Now Serving starts at 0
-  const waitingTokens = recentTokens.filter(token => token.tokenNumber >= currentNumber);
+  const waitingTokens = tokens.filter(token => token.tokenNumber >= currentNumber);
   const waitingCount = waitingTokens.length;
   const estimatedWait = waitingCount * 5;
 
   // If there are tokens, set currentNumber to 0 for the first token
-  const displayCurrentNumber = recentTokens.length > 0 ? currentNumber - 1 : 0;
+  const displayCurrentNumber = tokens.length > 0 ? currentNumber - 1 : 0;
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">

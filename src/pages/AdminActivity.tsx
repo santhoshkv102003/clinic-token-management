@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useQueue } from "../QueueContext";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
 const AdminActivity = () => {
-  const [currentNumber, setCurrentNumber] = useState(1);
-  const [tokens, setTokens] = useState<any[]>([]);
+  const { currentNumber, tokens } = useQueue();
   const navigate = useNavigate();
 
   return (
@@ -23,7 +22,7 @@ const AdminActivity = () => {
             <div className="space-y-3 overflow-y-auto flex-1">
               {tokens.filter(token => token.tokenNumber < currentNumber).map((token) => (
                 <div 
-                  key={token.id} 
+                  key={token.tokenNumber} 
                   className="flex items-center justify-between p-4 rounded-lg border bg-muted/30 border-border"
                 >
                   <div className="flex items-center gap-4">

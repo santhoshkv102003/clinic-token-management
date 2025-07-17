@@ -2,14 +2,13 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { QueueDisplay } from "@/components/QueueDisplay";
+import { useQueue } from "../QueueContext";
 
 const ADMIN_LOGIN_KEY = 'adminLoggedIn';
 
 const AdminPanel = () => {
+  const { currentNumber, tokens, nextNumber } = useQueue();
   const navigate = useNavigate();
-  // Local state for queue status (for demo, you may want to share this state across admin pages)
-  const [currentNumber, setCurrentNumber] = useState(1);
-  const [tokens, setTokens] = useState<any[]>([]);
 
   useEffect(() => {
     if (localStorage.getItem(ADMIN_LOGIN_KEY) !== 'true') {
@@ -45,7 +44,7 @@ const AdminPanel = () => {
             <Button
               variant="medical"
               className="w-full text-lg py-6"
-              onClick={() => navigate('/admin/call')}
+              onClick={nextNumber}
             >
               Call Next Patient
             </Button>
