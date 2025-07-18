@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TokenBooking } from "@/components/TokenBooking";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +8,16 @@ const AdminBooking = () => {
   const [tokens, setTokens] = useState<any[]>([]);
   const [adminBookingKey, setAdminBookingKey] = useState(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleTabClose = () => {
+      localStorage.removeItem('adminLoggedIn');
+    };
+    window.addEventListener('beforeunload', handleTabClose);
+    return () => {
+      window.removeEventListener('beforeunload', handleTabClose);
+    };
+  }, []);
 
   const handleTokenIssued = (tokenData: any) => {
     setTokens(prev => [...prev, tokenData]);

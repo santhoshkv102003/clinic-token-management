@@ -1,10 +1,21 @@
 import { useQueue } from "../QueueContext";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const AdminActivity = () => {
   const { currentNumber, tokens } = useQueue();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleTabClose = () => {
+      localStorage.removeItem('adminLoggedIn');
+    };
+    window.addEventListener('beforeunload', handleTabClose);
+    return () => {
+      window.removeEventListener('beforeunload', handleTabClose);
+    };
+  }, []);
 
   return (
     <div

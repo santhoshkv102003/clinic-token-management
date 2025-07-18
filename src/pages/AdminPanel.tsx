@@ -12,10 +12,21 @@ const AdminPanel = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('adminLoggedIn:', localStorage.getItem(ADMIN_LOGIN_KEY));
     if (localStorage.getItem(ADMIN_LOGIN_KEY) !== 'true') {
       navigate('/');
     }
   }, [navigate]);
+
+  useEffect(() => {
+    const handleTabClose = () => {
+      localStorage.removeItem('adminLoggedIn');
+    };
+    window.addEventListener('beforeunload', handleTabClose);
+    return () => {
+      window.removeEventListener('beforeunload', handleTabClose);
+    };
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem(ADMIN_LOGIN_KEY);
