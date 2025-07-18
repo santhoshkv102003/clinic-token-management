@@ -29,7 +29,15 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center py-8 relative">
+    <div
+      className="min-h-screen bg-background flex flex-col items-center justify-center py-8 relative"
+      style={{
+        backgroundImage: "url('/DeWatermark.ai_1752809220809.jpeg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat"
+      }}
+    >
       <div className="w-full max-w-xl">
         <form onSubmit={handleAdminLogin} className="max-w-md mx-auto space-y-4 p-6 bg-card rounded-lg border">
           <div>

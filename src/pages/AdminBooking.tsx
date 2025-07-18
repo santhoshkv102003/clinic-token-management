@@ -15,9 +15,20 @@ const AdminBooking = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center py-8">
+    <div
+      className="min-h-screen bg-background flex flex-col items-center justify-center py-8"
+      style={{
+        backgroundImage: "url('/DeWatermark.ai_1752809220809.jpeg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat"
+      }}
+    >
       <div className="w-full max-w-xl">
-        <Button variant="outline" className="mb-6" onClick={() => navigate(-1)}>
+        <Button
+          className="mb-6 p-6 bg-card/50 backdrop-blur-sm rounded-xl border-2 border-primary/20"
+          onClick={() => navigate(-1)}
+        >
           ← Back
         </Button>
         <TokenBooking

@@ -62,7 +62,7 @@ export function TokenBooking({ onBooked }: { onBooked?: () => void }) {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border-2 border-primary/20 w-full max-w-md mx-auto">
       <CardHeader className="text-center">
         <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
           <Stethoscope className="w-6 h-6 text-primary" />

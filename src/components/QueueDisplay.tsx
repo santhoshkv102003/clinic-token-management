@@ -18,20 +18,10 @@ export function QueueDisplay() {
   const displayCurrentNumber = tokens.length > 0 ? currentNumber - 1 : 0;
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
+    <div className="w-full max-w-4xl mx-auto space-y-6 relative">
       {/* Home Logo OUTSIDE the Card */}
-      {location.pathname !== "/" && (
-        <button
-          onClick={() => navigate("/")}
-          className="mb-4 hover:bg-primary/10 rounded-full p-2 transition"
-          aria-label="Go to Home"
-          style={{ border: "none", background: "none", cursor: "pointer" }}
-        >
-          <Home className="w-8 h-8 text-primary" />
-        </button>
-      )}
       {/* Main Display */}
-      <Card className="text-center">
+      <Card className="text-center bg-transparent shadow-none border-none">
         <CardHeader className="flex flex-col space-y-1.5 p-6">
           <CardTitle className="font-semibold tracking-tight text-3xl">Queue Status</CardTitle>
         </CardHeader>
@@ -39,7 +29,7 @@ export function QueueDisplay() {
         <CardContent>
           <div className="grid md:grid-cols-3 gap-6">
             {/* Current Number */}
-            <div className="p-6 bg-gradient-to-br from-primary/10 to-primary-glow/10 rounded-xl border-2 border-primary/20">
+            <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border-2 border-primary/20">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Users className="w-6 h-6 text-primary" />
               </div>
@@ -49,7 +39,7 @@ export function QueueDisplay() {
             </div>
             
             {/* Queue Length */}
-            <div className="p-6 bg-gradient-to-br from-primary/10 to-primary-glow/10 rounded-xl border-2 border-primary/20">
+            <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border-2 border-primary/20">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Users className="w-6 h-6 text-accent" />
               </div>
@@ -59,7 +49,7 @@ export function QueueDisplay() {
             </div>
             
             {/* Average Wait */}
-            <div className="p-6 bg-gradient-to-br from-primary/10 to-primary-glow/10 rounded-xl border-2 border-primary/20">
+            <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border-2 border-primary/20">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Clock className="w-6 h-6 text-warning" />
               </div>
