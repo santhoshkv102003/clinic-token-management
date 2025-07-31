@@ -17,12 +17,20 @@ const AdminCall = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center py-8">
+    <div 
+      className="min-h-screen bg-background flex flex-col items-center justify-center py-8"
+      style={{
+        backgroundImage: "url('/DeWatermark.ai_1752809220809.jpeg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat"
+      }}
+    >
       <div className="w-full max-w-xl">
         <Button variant="outline" className="mb-6" onClick={() => navigate('/admin')}>
           ← Back to Admin Panel
         </Button>
-        <div className="bg-card rounded-lg border p-6 flex flex-col items-center justify-center">
+        <div className="bg-white/90 backdrop-blur-sm rounded-lg border p-6 flex flex-col items-center justify-center shadow-lg">
           <div className="text-3xl font-bold text-primary mb-2">{currentNumber - 1}</div>
           <div className="text-sm text-muted-foreground mb-4">Current Number</div>
           <Button 
