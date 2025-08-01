@@ -3,6 +3,8 @@ import React, { createContext, useContext, useState } from "react";
 type Token = {
   tokenNumber: number;
   name?: string;
+  phone?: string;
+  age?: number;
   department?: string;
   bookedAt: string;
 };

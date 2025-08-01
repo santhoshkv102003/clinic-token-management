@@ -64,6 +64,9 @@ export function TokenStatus({ token, currentNumber, onBack }: TokenStatusProps) 
               <div>
                 <div className="font-medium">{token.name}</div>
                 <div className="text-sm text-muted-foreground">{token.phone}</div>
+                {token.age && (
+                  <div className="text-sm text-muted-foreground">Age: {token.age} years</div>
+                )}
               </div>
             </div>
             

@@ -136,7 +136,10 @@ export function AdminPanel({
                       </div>
                       <div>
                         <div className="font-medium">{token.name}</div>
-                        <div className="text-sm text-muted-foreground">{token.department}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {token.department}
+                          {token.age && ` • Age: ${token.age}`}
+                        </div>
                       </div>
                     </div>
                     

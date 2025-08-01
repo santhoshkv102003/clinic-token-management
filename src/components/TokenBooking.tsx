@@ -11,7 +11,9 @@ import { useQueue } from "../QueueContext";
 export function TokenBooking({ onBooked }: { onBooked?: () => void }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [age, setAge] = useState("");
   const [department, setDepartment] = useState("");
+  const [customDepartment, setCustomDepartment] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { currentNumber, tokens, bookToken } = useQueue();
@@ -23,17 +25,38 @@ export function TokenBooking({ onBooked }: { onBooked?: () => void }) {
     "Dermatology",
     "Pediatrics",
     "ENT",
-    "Ophthalmology"
+    "Ophthalmology",
+    "Others"
   ];
 
   const queueLength = tokens.length;
   const estimatedWaitTime = Math.max(0, (queueLength - (currentNumber - 1)) * 5);
 
   const handleBookToken = async () => {
-    if (!name || !phone || !department) {
+    if (!name || !phone || !age || !department) {
       toast({
         title: "Please fill all fields",
-        description: "Name, phone and department are required",
+        description: "Name, phone, age and department are required",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if "Others" is selected but custom department is empty
+    if (department === "Others" && !customDepartment.trim()) {
+      toast({
+        title: "Please specify department",
+        description: "Please enter the department name",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const ageNumber = parseInt(age);
+    if (isNaN(ageNumber) || ageNumber < 0 || ageNumber > 150) {
+      toast({
+        title: "Invalid age",
+        description: "Please enter a valid age between 0 and 150",
         variant: "destructive"
       });
       return;
@@ -45,7 +68,8 @@ export function TokenBooking({ onBooked }: { onBooked?: () => void }) {
     bookToken({
       name,
       phone,
-      department,
+      age: ageNumber,
+      department: department === "Others" ? customDepartment.trim() : department,
       bookedAt: new Date().toISOString()
     });
 
@@ -56,7 +80,9 @@ export function TokenBooking({ onBooked }: { onBooked?: () => void }) {
 
     setName("");
     setPhone("");
+    setAge("");
     setDepartment("");
+    setCustomDepartment("");
     setLoading(false);
     if (onBooked) onBooked();
   };
@@ -104,6 +130,18 @@ export function TokenBooking({ onBooked }: { onBooked?: () => void }) {
             />
           </div>
           <div>
+            <Label htmlFor="age">Age</Label>
+            <Input
+              id="age"
+              type="number"
+              min="0"
+              max="150"
+              value={age}
+              onChange={(e) => setAge(e.target.value)}
+              placeholder="Enter your age"
+            />
+          </div>
+          <div>
             <Label htmlFor="department">Department</Label>
             <Select value={department} onValueChange={setDepartment}>
               <SelectTrigger>
@@ -117,6 +155,18 @@ export function TokenBooking({ onBooked }: { onBooked?: () => void }) {
                 ))}
               </SelectContent>
             </Select>
+            {department === "Others" && (
+              <div className="mt-2">
+                <Label htmlFor="customDepartment">Specify Department</Label>
+                <Input
+                  id="customDepartment"
+                  value={customDepartment}
+                  onChange={(e) => setCustomDepartment(e.target.value)}
+                  placeholder="Enter department name"
+                  className="mt-1"
+                />
+              </div>
+            )}
           </div>
         </div>
         <Button 
