@@ -63,36 +63,42 @@ const AdminPanel = () => {
         </div>
         {!showUpcomingPatients ? (
           <div className="flex flex-col gap-8">
-            <div className="flex flex-col gap-4 mb-8">
-              <Button
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-gradient-to-r from-primary to-primary-glow text-primary-foreground hover:shadow-lg hover:scale-105 transition-all duration-200 h-10 px-4 w-80 mx-auto text-lg py-6"
-                onClick={() => navigate('/admin/booking')}
-              >
-                Booking Patient
-              </Button>
-              <Button
-                variant="medical"
-                className="w-80 mx-auto text-lg py-6"
-                onClick={nextNumber}
-              >
-                Call Next Patient
-              </Button>
-              <Button
-                variant="medical"
-                className="w-80 mx-auto text-lg py-6"
-                onClick={() => navigate('/admin/activity')}
-              >
-                  Visited Patient
-              </Button>
-              <Button
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-gradient-to-r from-primary to-primary-glow text-primary-foreground hover:shadow-lg hover:scale-105 transition-all duration-200 h-10 px-4 w-80 mx-auto text-lg py-6"
-                onClick={() => {
-                  console.log('Opening upcoming patients list');
-                  setShowUpcomingPatients(true);
-                }}
-              >
-                Upcoming Patients
-              </Button>
+            <div className="flex gap-8 justify-center mb-8">
+              {/* Left column: Three buttons in vertical line */}
+              <div className="flex flex-col gap-4">
+                <Button
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-gradient-to-r from-primary to-primary-glow text-primary-foreground hover:shadow-lg hover:scale-105 transition-all duration-200 h-10 px-4 w-80 text-lg py-6"
+                  onClick={() => navigate('/admin/booking')}
+                >
+                  Booking Patient
+                </Button>
+                <Button
+                  variant="medical"
+                  className="w-80 text-lg py-6"
+                  onClick={() => navigate('/admin/activity')}
+                >
+                  Visited Patients
+                </Button>
+                <Button
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-gradient-to-r from-primary to-primary-glow text-primary-foreground hover:shadow-lg hover:scale-105 transition-all duration-200 h-10 px-4 w-80 text-lg py-6"
+                  onClick={() => {
+                    console.log('Opening upcoming patients list');
+                    setShowUpcomingPatients(true);
+                  }}
+                >
+                  Upcoming Patients
+                </Button>
+              </div>
+              {/* Right column: Call Next Patient button */}
+              <div className="flex items-center">
+                <Button
+                  variant="destructive"
+                  className="w-80 text-lg py-6 hover:shadow-lg hover:scale-105 transition-all duration-200"
+                  onClick={nextNumber}
+                >
+                  Call Next Patient
+                </Button>
+              </div>
             </div>
           </div>
         ) : (
