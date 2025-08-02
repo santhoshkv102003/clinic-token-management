@@ -1,73 +1,166 @@
-# Welcome to your Lovable project
+# Clinic Token System
 
-## Project info
+A full-stack React TypeScript application for managing clinic patient tokens and appointments.
 
-**URL**: https://lovable.dev/projects/3faacdf9-b969-4533-a7af-63dd1516a062
+## 🚀 Features
 
-## How can I edit this code?
+- **Frontend**: React + TypeScript + Vite + Tailwind CSS + Shadcn/ui
+- **Backend**: Express.js API server
+- **Real-time**: Patient queue management
+- **Admin Panel**: Complete administrative interface
+- **Responsive**: Mobile-friendly design
 
-There are several ways of editing your application.
+## 📁 Project Structure
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/Clinicqueue) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+clinic-token-System/
+├── src/                    # Frontend React code
+├── server/                 # Backend Express server
+├── public/                 # Static assets
+├── dist/                   # Production build
+├── env.development         # Development environment variables
+├── env.production          # Production environment variables
+└── render.yaml            # Render deployment configuration
 ```
 
-**Edit a file directly in GitHub**
+## 🛠️ Development Setup
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Prerequisites
+- Node.js (v16 or higher)
+- npm or yarn
 
-**Use GitHub Codespaces**
+### Installation
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/santhoshkv102003/clinic-token-management.git
+   cd clinic-token-System
+   ```
 
-## What technologies are used for this project?
+2. **Install all dependencies (Frontend + Backend)**
+   ```bash
+   npm run install:all
+   ```
 
-This project is built with:
+### Running the Application
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+#### Option 1: Frontend Only (Current Setup)
+```bash
+npm run dev
+```
+- Frontend runs on: http://localhost:8080
+- Uses local storage for data persistence
 
-## How can I deploy this project?
+#### Option 2: Full Stack (Frontend + Backend)
+```bash
+npm run dev:full
+```
+- Frontend runs on: http://localhost:8080
+- Backend API runs on: http://localhost:3001
+- API calls are proxied through Vite
 
-Simply open [Lovable](https://lovable.dev/projects/3faacdf9-b969-4533-a7af-63dd1516a062) and click on Share -> Publish.
+#### Option 3: Run Separately
+```bash
+# Terminal 1 - Frontend
+npm run dev
 
-## Can I connect a custom domain to my Lovable project?
+# Terminal 2 - Backend
+npm run server:dev
+```
 
-Yes, you can!
+## 🔧 Available Scripts
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Frontend Scripts
+- `npm run dev` - Start frontend development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### Backend Scripts
+- `npm run server:dev` - Start backend development server
+- `npm run server:start` - Start backend production server
+- `npm run server:install` - Install backend dependencies
+
+### Full Stack Scripts
+- `npm run dev:full` - Start both frontend and backend
+- `npm run install:all` - Install all dependencies
+
+## 🌐 API Endpoints
+
+### Health Check
+- `GET /api/health` - Server health status
+
+### Token Management
+- `GET /api/tokens` - Get all tokens
+- `POST /api/tokens` - Create new token
+- `PUT /api/tokens/:id/next` - Call next patient
+
+## 🚀 Deployment
+
+### Render Deployment
+
+1. **Connect to Render**
+   - Go to [render.com](https://render.com)
+   - Connect your GitHub repository
+
+2. **Deploy Backend**
+   - Create new Web Service
+   - Build Command: `npm run install:all && npm run build`
+   - Start Command: `npm run server:start`
+
+3. **Deploy Frontend**
+   - Create new Static Site
+   - Build Command: `npm run build`
+   - Publish Directory: `dist`
+
+### Environment Variables
+
+#### Development
+```bash
+VITE_API_URL=http://localhost:3001
+VITE_APP_ENV=development
+```
+
+#### Production
+```bash
+VITE_API_URL=https://your-backend-api.com
+VITE_APP_ENV=production
+```
+
+## 🎨 UI Components
+
+Built with Shadcn/ui components:
+- Buttons, Cards, Dialogs
+- Forms and Inputs
+- Navigation and Layout
+- Toast notifications
+
+## 📱 Responsive Design
+
+- Mobile-first approach
+- Tailwind CSS for styling
+- Responsive breakpoints
+- Touch-friendly interface
+
+## 🔒 Security
+
+- Helmet.js for security headers
+- CORS configuration
+- Input validation
+- Environment variable protection
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+## 🆘 Support
+
+For support, please open an issue on GitHub or contact the development team.
