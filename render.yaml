@@ -1,19 +1,6 @@
 services:
-  # Backend API Service
   - type: web
-    name: clinic-token-backend
-    env: node
-    buildCommand: npm run install:all && npm run build
-    startCommand: npm run server:start
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: 3001
-
-  # Frontend Static Site
-  - type: web
-    name: clinic-token-frontend
+    name: clinic-token-system
     env: static
     buildCommand: npm run build
     staticPublishPath: ./dist
