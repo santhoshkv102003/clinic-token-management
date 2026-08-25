@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 
-const BASE = import.meta.env.VITE_API_BASE || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+const BASE = import.meta.env.VITE_API_BASE || (import.meta.env.PROD ? 'https://multi-clinic-token-management.onrender.com' : (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'));
 
 let socket: Socket | null = null;
 
