@@ -1,59 +1,23 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
+// AdminCall is now handled per-clinic from AdminPanel.
+// This page redirects back to the panel.
 const AdminCall = () => {
-  const [currentNumber, setCurrentNumber] = useState(1);
-  const [tokens, setTokens] = useState<any[]>([]);
   const navigate = useNavigate();
-
-  const handleNextNumber = () => {
-    setCurrentNumber(prev => prev + 1);
-  };
-
-  const handleResetQueue = () => {
-    setCurrentNumber(1);
-    setTokens([]);
-  };
-
   return (
-    <div 
-      className="min-h-screen bg-background flex flex-col items-center justify-center py-8"
-      style={{
-        backgroundImage: "url('/DeWatermark.ai_1752809220809.jpeg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat"
-      }}
-    >
-      <div className="w-full max-w-xl">
-        <Button variant="outline" className="mb-6" onClick={() => navigate('/admin')}>
-          ← Back to Admin Panel
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+      <div className="text-center p-8 bg-card rounded-xl border max-w-sm">
+        <p className="text-muted-foreground mb-4">
+          Queue management is now handled per-clinic in the Admin Dashboard.
+        </p>
+        <Button variant="medical" onClick={() => navigate("/admin/panel")}>
+          <ArrowLeft className="w-4 h-4 mr-2" /> Go to Admin Dashboard
         </Button>
-        <div className="bg-white/90 backdrop-blur-sm rounded-lg border p-6 flex flex-col items-center justify-center shadow-lg">
-          <div className="text-3xl font-bold text-primary mb-2">{currentNumber - 1}</div>
-          <div className="text-sm text-muted-foreground mb-4">Current Number</div>
-          <Button 
-            onClick={handleNextNumber}
-            variant="medical"
-            size="lg"
-            className="w-full mb-2"
-            disabled={tokens.filter(token => token.tokenNumber >= currentNumber).length === 0}
-          >
-            Call Next Patient
-          </Button>
-          <Button 
-            onClick={handleResetQueue}
-            variant="outline"
-            size="lg"
-            className="w-full"
-          >
-            Reset Queue
-          </Button>
-        </div>
       </div>
     </div>
   );
 };
 
-export default AdminCall; 
+export default AdminCall;

@@ -1,61 +1,74 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Monitor, Users, Clock, CheckCircle, Home } from "lucide-react";
+import { Users, Clock } from "lucide-react";
 import { useQueue } from "../QueueContext";
-import { useNavigate, useLocation } from "react-router-dom";
 
 export function QueueDisplay() {
   const { currentNumber, tokens } = useQueue();
-  const navigate = useNavigate();
-  const location = useLocation();
+  
   // Only count tokens that are not yet served
-  // Now Serving starts at 0
   const waitingTokens = tokens.filter(token => token.tokenNumber >= currentNumber);
   const waitingCount = waitingTokens.length;
   const estimatedWait = waitingCount * 5;
 
-  // If there are tokens, set currentNumber to 0 for the first token
-  const displayCurrentNumber = tokens.length > 0 ? currentNumber - 1 : 0;
+  const displayCurrentNumber = tokens.length > 0 ? Math.max(0, currentNumber - 1) : 0;
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6 relative">
-      {/* Home Logo OUTSIDE the Card */}
-      {/* Main Display */}
+    <div className="w-full max-w-4xl mx-auto space-y-6">
       <Card className="text-center bg-transparent shadow-none border-none">
-        <CardHeader className="flex flex-col space-y-1.5 p-6">
-          <CardTitle className="font-semibold tracking-tight text-3xl">Queue Status</CardTitle>
+        <CardHeader className="flex flex-col space-y-1.5 p-2">
+          <CardTitle className="text-3xl sm:text-4xl font-extrabold text-[#1e293b] tracking-tight">
+            Queue Status
+          </CardTitle>
         </CardHeader>
         
-        <CardContent>
-          <div className="grid md:grid-cols-3 gap-6">
+        <CardContent className="p-0 mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             {/* Current Number */}
-            <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border-2 border-primary/20">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Users className="w-6 h-6 text-primary" />
+            <div className="bg-[#e6f4f8]/90 backdrop-blur-md rounded-2xl p-6 sm:p-7 shadow-lg border border-white/80 text-center flex flex-col items-center justify-center transition-transform hover:-translate-y-1 duration-200">
+              <div className="mb-2 text-[#00a6d6]">
+                <Users className="w-7 h-7 stroke-[2.2]" />
               </div>
-              <div className="text-4xl font-bold text-primary mb-2">{displayCurrentNumber}</div>
-              <div className="text-lg font-medium text-black">Now Serving</div>
-              <div className="text-sm text-muted-foreground mt-1">Please proceed to counter</div>
+              <div className="text-4xl sm:text-5xl font-extrabold text-[#00a6d6] mb-1">
+                {displayCurrentNumber}
+              </div>
+              <div className="text-base sm:text-lg font-bold text-slate-800">
+                Now Serving
+              </div>
+              <div className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+                Please proceed to counter
+              </div>
             </div>
             
             {/* Queue Length */}
-            <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border-2 border-primary/20">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Users className="w-6 h-6 text-accent" />
+            <div className="bg-[#e6f4f8]/90 backdrop-blur-md rounded-2xl p-6 sm:p-7 shadow-lg border border-white/80 text-center flex flex-col items-center justify-center transition-transform hover:-translate-y-1 duration-200">
+              <div className="mb-2 text-[#0d9488]">
+                <Users className="w-7 h-7 stroke-[2.2]" />
               </div>
-              <div className="text-4xl font-bold text-accent mb-2">{waitingCount}</div>
-              <div className="text-lg font-medium">In Queue</div>
-              <div className="text-sm text-muted-foreground">Patients waiting</div>
+              <div className="text-4xl sm:text-5xl font-extrabold text-[#0d9488] mb-1">
+                {waitingCount}
+              </div>
+              <div className="text-base sm:text-lg font-bold text-slate-800">
+                In Queue
+              </div>
+              <div className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+                Patients waiting
+              </div>
             </div>
             
             {/* Average Wait */}
-            <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border-2 border-primary/20">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Clock className="w-6 h-6 text-warning" />
+            <div className="bg-[#e6f4f8]/90 backdrop-blur-md rounded-2xl p-6 sm:p-7 shadow-lg border border-white/80 text-center flex flex-col items-center justify-center transition-transform hover:-translate-y-1 duration-200">
+              <div className="mb-2 text-[#f59e0b]">
+                <Clock className="w-7 h-7 stroke-[2.2]" />
               </div>
-              <div className="text-4xl font-bold text-warning mb-2">{estimatedWait}</div>
-              <div className="text-lg font-medium">Minutes</div>
-              <div className="text-sm text-muted-foreground">Estimated Waiting Time</div>
+              <div className="text-4xl sm:text-5xl font-extrabold text-[#f59e0b] mb-1">
+                {estimatedWait}
+              </div>
+              <div className="text-base sm:text-lg font-bold text-slate-800">
+                Minutes
+              </div>
+              <div className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+                Estimated Waiting Time
+              </div>
             </div>
           </div>
         </CardContent>

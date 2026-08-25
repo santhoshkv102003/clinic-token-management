@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState } from "react";
 
 type Token = {
   tokenNumber: number;
@@ -15,6 +15,7 @@ type QueueContextType = {
   nextNumber: () => Promise<void>;
   resetQueue: () => Promise<void>;
   bookToken: (token: Omit<Token, "tokenNumber">) => Promise<void>;
+  fetchQueue: () => Promise<void>;
   loading: boolean;
   error: string | null;
 };
@@ -29,10 +30,7 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch initial queue data
-  useEffect(() => {
-    fetchQueue();
-  }, []);
+  // NOTE: No auto-fetch on mount — pages that need it call fetchQueue() explicitly.
 
   const fetchQueue = async () => {
     try {
@@ -54,9 +52,7 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setLoading(true);
       const response = await fetch(`${API_BASE}/api/next-number`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       });
       if (!response.ok) throw new Error('Failed to advance queue');
       const data = await response.json();
@@ -73,9 +69,7 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setLoading(true);
       const response = await fetch(`${API_BASE}/api/reset-queue`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       });
       if (!response.ok) throw new Error('Failed to reset queue');
       setCurrentNumber(1);
@@ -92,9 +86,7 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setLoading(true);
       const response = await fetch(`${API_BASE}/api/book-token`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(token),
       });
       if (!response.ok) throw new Error('Failed to book token');
@@ -108,12 +100,13 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   return (
-    <QueueContext.Provider value={{ 
-      currentNumber, 
-      tokens, 
-      nextNumber, 
-      resetQueue, 
+    <QueueContext.Provider value={{
+      currentNumber,
+      tokens,
+      nextNumber,
+      resetQueue,
       bookToken,
+      fetchQueue,
       loading,
       error
     }}>
@@ -126,4 +119,4 @@ export const useQueue = () => {
   const context = useContext(QueueContext);
   if (!context) throw new Error("useQueue must be used within a QueueProvider");
   return context;
-}; 
+};
