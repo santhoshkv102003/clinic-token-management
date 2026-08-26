@@ -68,8 +68,8 @@ export default function AdminPanel() {
       } catch (e: any) { toast({ title: e.message, variant: 'destructive' }); }
       finally { setBusy(false); }
     } else {
-      if (!form.clinicName || !form.doctorName || !form.adminName || !form.adminEmail || !form.adminPassword) {
-        toast({ title: 'All fields required', variant: 'destructive' }); return;
+      if (!form.clinicName || !form.doctorName) {
+        toast({ title: 'Clinic name and Doctor name required', variant: 'destructive' }); return;
       }
       setBusy(true);
       try {
@@ -190,19 +190,19 @@ export default function AdminPanel() {
               {!editId && (
                 <>
                   <div className="border-t pt-3">
-                    <p className="text-sm font-medium mb-3 text-muted-foreground">Clinic Admin Account</p>
+                    <p className="text-sm font-medium mb-3 text-muted-foreground">Clinic Admin Account (Optional - Auto generated if left blank)</p>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div className="space-y-1">
-                        <Label>Admin Name *</Label>
-                        <Input value={form.adminName} onChange={e => setForm(f=>({...f,adminName:e.target.value}))} placeholder="Kumar" />
+                        <Label>Admin Name</Label>
+                        <Input value={form.adminName} onChange={e => setForm(f=>({...f,adminName:e.target.value}))} placeholder="" />
                       </div>
                       <div className="space-y-1">
-                        <Label>Admin Email *</Label>
-                        <Input type="email" value={form.adminEmail} onChange={e => setForm(f=>({...f,adminEmail:e.target.value}))} placeholder="kumar@clinic.com" />
+                        <Label>Admin Email</Label>
+                        <Input type="email" value={form.adminEmail} onChange={e => setForm(f=>({...f,adminEmail:e.target.value}))} placeholder="" />
                       </div>
                       <div className="space-y-1">
-                        <Label>Password *</Label>
-                        <Input type="password" value={form.adminPassword} onChange={e => setForm(f=>({...f,adminPassword:e.target.value}))} placeholder="min 6 chars" />
+                        <Label>Password</Label>
+                        <Input type="password" value={form.adminPassword} onChange={e => setForm(f=>({...f,adminPassword:e.target.value}))} placeholder="" />
                       </div>
                     </div>
                   </div>

@@ -55,17 +55,18 @@ export default function AdminLogin() {
             <p className="text-sm text-muted-foreground">ClinicQueue Management System</p>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
               <div className="space-y-1">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
+                  name="admin_login_email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="admin@clinic.com"
+                  placeholder="Enter the mail"
                   required
-                  autoComplete="email"
+                  autoComplete="off"
                 />
               </div>
               <div className="space-y-1">
@@ -73,11 +74,12 @@ export default function AdminLogin() {
                 <Input
                   id="password"
                   type="password"
+                  name="admin_login_password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="Enter the password"
                   required
-                  autoComplete="current-password"
+                  autoComplete="new-password"
                 />
               </div>
               <Button type="submit" className="w-full" variant="medical" disabled={busy}>
@@ -85,13 +87,6 @@ export default function AdminLogin() {
                 {busy ? "Logging in..." : "Login"}
               </Button>
             </form>
-
-            <div className="mt-4 p-3 bg-muted/40 rounded-lg text-xs text-muted-foreground space-y-1">
-              <div className="font-medium mb-1">Demo accounts:</div>
-              <div>🔑 superadmin@clinic.com / super123</div>
-              <div>🏥 kumar@c001.com / admin123 (C001)</div>
-              <div>🏥 priya@c002.com / admin123 (C002)</div>
-            </div>
           </CardContent>
         </Card>
       </div>

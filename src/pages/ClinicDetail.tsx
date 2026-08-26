@@ -36,8 +36,8 @@ export default function ClinicDetail() {
   const [tokens, setTokens] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Admin view toggle (true when logged in & viewing Image 3)
-  const isClinicAdmin = (user?.role === 'SUPER_ADMIN') || (user?.role === 'CLINIC_ADMIN' && user?.clinicId === clinicId?.toUpperCase());
+  // Admin view toggle (true ONLY when logged in as this specific clinic's admin)
+  const isClinicAdmin = user?.role === 'CLINIC_ADMIN' && user?.clinicId === clinicId?.toUpperCase();
   const [isAdminView, setIsAdminView] = useState<boolean>(false);
 
   // Modals
@@ -104,7 +104,7 @@ export default function ClinicDetail() {
   const inQueueCount = tokens.filter(t => t.status === "Waiting").length;
   const estimatedWaitMinutes = inQueueCount * 5;
 
-  // Toggle Open/Closed clinic status (Top left button in Admin View)
+  // Toggle Open/Closed status in Image 3
   const handleToggleStatus = async () => {
     if (!token || !clinic) return;
     const nextStatus = clinic.status === 'Open' ? 'Closed' : 'Open';
@@ -115,38 +115,31 @@ export default function ClinicDetail() {
         title: nextStatus === 'Open' ? '🟢 Clinic is now OPEN' : '🔴 Clinic is now CLOSED',
         description: nextStatus === 'Open' ? 'Patients can now book tokens' : 'Token bookings are paused',
       });
-    } catch (err: any) {
-      toast({ title: err.message || 'Failed to update clinic status', variant: 'destructive' });
+    } catch (e: any) {
+      toast({ title: e.message || 'Failed to update status', variant: 'destructive' });
     }
   };
 
-  // Handle Token Booking (Patient or Admin)
-  const handleBookToken = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!name.trim() || !phone.trim() || !age.trim() || !department) {
-      toast({ title: "Please fill in all required fields", variant: "destructive" });
+  // Handle Token Booking (Patient action in Image 2)
+  const handleBookToken = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!clinicId) return;
+    if (!name.trim() || !phone.trim()) {
+      toast({ title: "Name and Phone number are required", variant: "destructive" });
       return;
     }
-    if (department === "Others" && !customDept.trim()) {
-      toast({ title: "Please specify department name", variant: "destructive" });
-      return;
-    }
-    const ageNum = parseInt(age);
-    if (isNaN(ageNum) || ageNum < 0 || ageNum > 130) {
-      toast({ title: "Please enter a valid age", variant: "destructive" });
-      return;
-    }
-
+    const finalDept = department === "Others" ? customDept : department;
     setBookingLoading(true);
     try {
       const tokenResult = await apiBookToken({
-        clinicId: clinicId!,
+        clinicId,
         name: name.trim(),
         phone: phone.trim(),
-        age: ageNum,
-        department: department === "Others" ? customDept.trim() : department,
+        age: age ? parseInt(age) : undefined,
+        department: finalDept || "General Medicine",
       });
 
+      setShowPatientBookingModal(false);
       setIssuedToken(tokenResult);
       setName("");
       setPhone("");
@@ -169,10 +162,8 @@ export default function ClinicDetail() {
     if (isClinicAdmin) {
       setIsAdminView(true);
     } else {
-      // Pre-fill email for ease of login if known
-      if (clinicId?.toUpperCase() === 'C001') setAdminEmail('kumar@c001.com');
-      else if (clinicId?.toUpperCase() === 'C002') setAdminEmail('priya@c002.com');
-      else if (clinicId?.toUpperCase() === 'C003') setAdminEmail('karthik@c003.com');
+      setAdminEmail("");
+      setAdminPassword("");
       setShowAdminLoginModal(true);
     }
   };
@@ -182,10 +173,13 @@ export default function ClinicDetail() {
     e.preventDefault();
     setAdminLoginLoading(true);
     try {
-      await login(adminEmail.trim(), adminPassword);
+      const authData = await login(adminEmail.trim(), adminPassword);
+      if (authData?.user?.role === 'CLINIC_ADMIN' && authData?.user?.clinicId !== clinicId?.toUpperCase()) {
+        throw new Error(`This account belongs to ${authData.user.clinicId}, not this clinic.`);
+      }
       setShowAdminLoginModal(false);
       setIsAdminView(true);
-      toast({ title: "✅ Logged in as Admin" });
+      toast({ title: "✅ Logged in as Clinic Admin" });
     } catch (err: any) {
       toast({ title: err.message || "Admin login failed", variant: "destructive" });
     } finally {
@@ -622,15 +616,17 @@ export default function ClinicDetail() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleAdminLogin} className="space-y-4 py-2">
+          <form onSubmit={handleAdminLogin} className="space-y-4 py-2" autoComplete="off">
             <div className="space-y-1">
               <Label className="text-xs font-semibold text-slate-700">Admin Email</Label>
               <Input
                 required
                 type="email"
+                name="clinic_admin_email_input"
+                autoComplete="off"
                 value={adminEmail}
                 onChange={(e) => setAdminEmail(e.target.value)}
-                placeholder="admin@clinic.com"
+                placeholder="Enter the mail"
                 className="rounded-xl border-slate-200"
               />
             </div>
@@ -640,22 +636,19 @@ export default function ClinicDetail() {
               <Input
                 required
                 type="password"
+                name="clinic_admin_password_input"
+                autoComplete="new-password"
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="Enter the password"
                 className="rounded-xl border-slate-200"
               />
-            </div>
-
-            <div className="p-3 bg-slate-50 rounded-xl border text-[11px] text-slate-500 space-y-1">
-              <div className="font-semibold text-slate-700">Clinic Demo Account:</div>
-              <div>🔑 {clinicId?.toLowerCase()} admin: <span className="font-mono text-slate-800 font-semibold">{adminEmail || 'kumar@c001.com'}</span> / <span className="font-mono text-slate-800 font-semibold">admin123</span></div>
             </div>
 
             <Button
               type="submit"
               disabled={adminLoginLoading}
-              className="w-full bg-[#00a6d6] hover:bg-[#0092bd] text-white font-bold py-3 rounded-xl shadow-md"
+              className="w-full bg-[#00a6d6] hover:bg-[#0092bd] text-white font-bold py-3 rounded-xl shadow-md mt-2"
             >
               {adminLoginLoading ? "Logging in..." : "Enter Admin Dashboard"}
             </Button>

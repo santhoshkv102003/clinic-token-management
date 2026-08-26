@@ -35,8 +35,8 @@ export default function Home() {
   const [showAddClinicModal, setShowAddClinicModal] = useState(false);
 
   // Admin Login State
-  const [adminEmail, setAdminEmail] = useState("superadmin@clinic.com");
-  const [adminPassword, setAdminPassword] = useState("super123");
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
   const [adminLoginLoading, setAdminLoginLoading] = useState(false);
 
   // Add Clinic Form State
@@ -447,7 +447,7 @@ export default function Home() {
       </footer>
 
       {/* ── MODAL: Admin Login ── */}
-      <Dialog open={showAdminLoginModal} onOpenChange={setShowAdminLoginModal}>
+      <Dialog open={showAdminLoginModal} onOpenChange={(open) => { setShowAdminLoginModal(open); if (open) { setAdminEmail(""); setAdminPassword(""); } }}>
         <DialogContent className="sm:max-w-md bg-white/95 backdrop-blur-md rounded-2xl border border-white/60 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-slate-800 text-center flex items-center justify-center gap-2">
@@ -459,15 +459,17 @@ export default function Home() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleAdminLogin} className="space-y-4 py-2">
+          <form onSubmit={handleAdminLogin} className="space-y-4 py-2" autoComplete="off">
             <div className="space-y-1">
               <Label className="text-xs font-semibold text-slate-700">Email Address</Label>
               <Input
                 required
                 type="email"
+                name="superadmin_email_input"
+                autoComplete="off"
                 value={adminEmail}
                 onChange={(e) => setAdminEmail(e.target.value)}
-                placeholder="superadmin@clinic.com"
+                placeholder="Enter the mail"
                 className="rounded-xl border-slate-200"
               />
             </div>
@@ -477,23 +479,19 @@ export default function Home() {
               <Input
                 required
                 type="password"
+                name="superadmin_password_input"
+                autoComplete="new-password"
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="Enter the password"
                 className="rounded-xl border-slate-200"
               />
-            </div>
-
-            <div className="p-3 bg-slate-50 rounded-xl border text-[11px] text-slate-500 space-y-1">
-              <div className="font-semibold text-slate-700">Super Admin Account:</div>
-              <div>🔑 Email: <span className="font-mono font-semibold text-slate-800">superadmin@clinic.com</span></div>
-              <div>🔑 Password: <span className="font-mono font-semibold text-slate-800">super123</span></div>
             </div>
 
             <Button
               type="submit"
               disabled={adminLoginLoading}
-              className="w-full bg-[#00a6d6] hover:bg-[#0092bd] text-white font-bold py-3 rounded-xl shadow-md text-sm"
+              className="w-full bg-[#00a6d6] hover:bg-[#0092bd] text-white font-bold py-3 rounded-xl shadow-md text-sm mt-2"
             >
               {adminLoginLoading ? "Logging in..." : "Login to Add Clinics"}
             </Button>
