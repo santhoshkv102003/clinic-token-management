@@ -702,10 +702,7 @@ app.get('/api/admin/summary', authMiddleware, requireSuperAdmin, async (req, res
 
 // ─── Serve React Static Files ─────────────────────────────────────────────────
 
-app.use(express.static(path.join(__dirname, 'dist')));
-app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'dist', 'index.html')));
-
-if (process.env.VERCEL !== '1' && process.env.NODE_ENV !== 'production' || process.env.PORT) {
+if (process.env.VERCEL !== '1' && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
   httpServer.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
 }
 
