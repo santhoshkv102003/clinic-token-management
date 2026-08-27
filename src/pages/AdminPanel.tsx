@@ -9,8 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import {
   Home, LogOut, Plus, Pencil, Trash2, Star, StarOff,
-  SkipForward, RotateCcw, RefreshCw, Building2, Users,
-  CheckCircle, X, Check
+  SkipForward, RotateCcw, RefreshCw, Search, X, Check,
+  MapPin, UserCheck, ShieldCheck, Mail, Lock, Phone
 } from "lucide-react";
 import {
   fetchClinics, fetchAdminSummary, createClinic, updateClinic,
@@ -28,19 +28,30 @@ const EMPTY_FORM: FormState = {
   adminName:'', adminEmail:'', adminPassword:''
 };
 
+export function computeDefaultEmail(clinicName: string, clinicId: string) {
+  let cleanName = (clinicName || '').replace(/^(Dr\.|Dr|Doctor|The)\s*/i, '').trim();
+  cleanName = cleanName.replace(/^[^a-zA-Z0-9]+/, '');
+  const firstChar = (cleanName.charAt(0) || 'c').toLowerCase();
+  const cid = (clinicId || '').toLowerCase();
+  return `${firstChar}${cid}@gmail.com`;
+}
+
 export default function AdminPanel() {
   const navigate  = useNavigate();
   const { toast } = useToast();
   const { token, user, logout } = useAuth();
 
-  const [summary,   setSummary]   = useState<any>(null);
-  const [clinics,   setClinics]   = useState<any[]>([]);
-  const [loading,   setLoading]   = useState(true);
-  const [showForm,  setShowForm]  = useState(false);
-  const [editId,    setEditId]    = useState<string|null>(null);
-  const [form,      setForm]      = useState<FormState>(EMPTY_FORM);
-  const [resetting, setResetting] = useState<string|null>(null);
-  const [busy,      setBusy]      = useState(false);
+  const [summary,      setSummary]      = useState<any>(null);
+  const [clinics,      setClinics]      = useState<any[]>([]);
+  const [loading,      setLoading]      = useState(true);
+  const [showForm,     setShowForm]     = useState(false);
+  const [editId,       setEditId]       = useState<string|null>(null);
+  const [form,         setForm]         = useState<FormState>(EMPTY_FORM);
+  const [resetting,    setResetting]    = useState<string|null>(null);
+  const [deletingId,   setDeletingId]   = useState<string|null>(null);
+  const [busy,         setBusy]         = useState(false);
+  const [searchTerm,   setSearchTerm]   = useState("");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "Open" | "Closed">("ALL");
 
   useEffect(() => { load(); }, []);
 
@@ -54,7 +65,34 @@ export default function AdminPanel() {
     finally { setLoading(false); }
   };
 
+  const nextClinicId = 'C' + String(clinics.length + 1).padStart(3, '0');
+
   const resetForm = () => { setForm(EMPTY_FORM); setEditId(null); setShowForm(false); };
+
+  const handleClinicNameChange = (val: string) => {
+    setForm(prev => {
+      const generatedEmail = computeDefaultEmail(val, editId || nextClinicId);
+      // If user hasn't typed custom email or if previous email matches old auto-generated pattern
+      const prevAuto = computeDefaultEmail(prev.clinicName, editId || nextClinicId);
+      const shouldUpdateEmail = !prev.adminEmail || prev.adminEmail === prevAuto;
+      return {
+        ...prev,
+        clinicName: val,
+        adminEmail: shouldUpdateEmail ? generatedEmail : prev.adminEmail
+      };
+    });
+  };
+
+  const handleDoctorNameChange = (val: string) => {
+    setForm(prev => {
+      const shouldUpdateAdminName = !prev.adminName || prev.adminName === prev.doctorName;
+      return {
+        ...prev,
+        doctorName: val,
+        adminName: shouldUpdateAdminName ? val : prev.adminName
+      };
+    });
+  };
 
   const handleSubmit = async () => {
     if (editId) {
@@ -73,8 +111,14 @@ export default function AdminPanel() {
       }
       setBusy(true);
       try {
-        await createClinic(form, token!);
-        toast({ title: 'Clinic + admin created ✅' }); resetForm(); load();
+        const payload = {
+          ...form,
+          adminEmail: form.adminEmail || computeDefaultEmail(form.clinicName, nextClinicId),
+          adminName: form.adminName || form.doctorName,
+          adminPassword: form.adminPassword || 'sr1011'
+        };
+        await createClinic(payload, token!);
+        toast({ title: `Clinic ${nextClinicId} + Admin created ✅` }); resetForm(); load();
       } catch (e: any) { toast({ title: e.message, variant: 'destructive' }); }
       finally { setBusy(false); }
     }
@@ -83,12 +127,25 @@ export default function AdminPanel() {
   const handleEdit = (c: any) => {
     setForm({ ...EMPTY_FORM, clinicName: c.clinicName, doctorName: c.doctorName, phone: c.phone||'', address: c.address||'', status: c.status });
     setEditId(c.clinicId); setShowForm(true);
+    window.scrollTo({ top: 150, behavior: 'smooth' });
   };
 
   const handleDelete = async (clinicId: string) => {
-    if (!confirm(`Delete ${clinicId}? This removes all tokens and the clinic admin.`)) return;
-    try { await deleteClinic(clinicId, token!); toast({ title: 'Clinic deleted' }); load(); }
-    catch (e: any) { toast({ title: e.message, variant: 'destructive' }); }
+    const ok = window.confirm(
+      `⚠️ Delete Clinic ${clinicId}?\n\nThis will remove all queue tokens, delete its admin account, and AUTOMATICALLY REASSIGN/RENUMBER all subsequent clinic numbers (e.g. C001, C002...). Proceed?`
+    );
+    if (!ok) return;
+
+    setDeletingId(clinicId);
+    try {
+      await deleteClinic(clinicId, token!);
+      toast({ title: `Clinic ${clinicId} deleted & numbers resequenced ✅` });
+      await load();
+    } catch (e: any) {
+      toast({ title: e.message || 'Failed to delete clinic', variant: 'destructive' });
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const handleFeatured = async (clinicId: string, current: boolean) => {
@@ -112,182 +169,414 @@ export default function AdminPanel() {
     catch (e: any) { toast({ title: e.message, variant: 'destructive' }); }
   };
 
+  // Filter clinics by search query and status
+  const filteredClinics = clinics.filter(c => {
+    const matchesStatus = statusFilter === 'ALL' || c.status === statusFilter;
+    const term = searchTerm.toLowerCase().trim();
+    if (!term) return matchesStatus;
+    const matchesSearch =
+      c.clinicName?.toLowerCase().includes(term) ||
+      c.doctorName?.toLowerCase().includes(term) ||
+      c.clinicId?.toLowerCase().includes(term) ||
+      c.address?.toLowerCase().includes(term);
+    return matchesStatus && matchesSearch;
+  });
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="border-b bg-white sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4 py-3 flex items-center gap-3">
-          <div className="flex-1">
-            <h1 className="font-bold text-lg">Super Admin Dashboard</h1>
-            <p className="text-xs text-muted-foreground">{user?.email}</p>
+      <header className="border-b bg-white/95 backdrop-blur sticky top-0 z-50 shadow-sm">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold shadow-sm">
+              <ShieldCheck className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="font-bold text-lg text-slate-800 leading-tight">Super Admin Dashboard</h1>
+              <p className="text-xs text-muted-foreground">{user?.email}</p>
+            </div>
           </div>
-          <Button variant="outline" size="sm" onClick={() => { setShowForm(true); setEditId(null); setForm(EMPTY_FORM); }}>
-            <Plus className="w-4 h-4 mr-1" /> Add Clinic
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => navigate('/')}><Home className="w-4 h-4" /></Button>
-          <Button variant="outline" size="sm" onClick={() => { logout(); navigate('/'); }}>
-            <LogOut className="w-4 h-4 mr-1" /> Logout
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="default"
+              size="sm"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+              onClick={() => {
+                setShowForm(true);
+                setEditId(null);
+                setForm({
+                  ...EMPTY_FORM,
+                  adminEmail: computeDefaultEmail('', nextClinicId),
+                  adminPassword: 'sr1011'
+                });
+              }}
+            >
+              <Plus className="w-4 h-4 mr-1.5" /> Add Clinic
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/')} title="Public Home">
+              <Home className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => { logout(); navigate('/'); }} className="text-red-600 border-red-200 hover:bg-red-50">
+              <LogOut className="w-4 h-4 mr-1.5" /> Logout
+            </Button>
+          </div>
         </div>
       </header>
 
       <div className="container mx-auto px-4 py-6 max-w-6xl">
-        {/* Summary */}
+        {/* Summary Stats Cards */}
         {summary && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
             {[
-              { label:'Total Clinics',    val: summary.totalClinics,   cls:'text-primary' },
-              { label:'Open',             val: summary.openClinics,    cls:'text-success' },
-              { label:'Closed',           val: summary.closedClinics,  cls:'text-muted-foreground' },
-              { label:'Featured',         val: summary.featuredCount,  cls:'text-warning' },
-              { label:'Waiting',          val: summary.totalWaiting,   cls:'text-accent' },
-              { label:'Completed Today',  val: summary.totalCompleted, cls:'text-success' },
+              { label:'Total Clinics',    val: summary.totalClinics,   cls:'text-primary bg-primary/10' },
+              { label:'Open Clinics',     val: summary.openClinics,    cls:'text-emerald-600 bg-emerald-50' },
+              { label:'Closed Clinics',   val: summary.closedClinics,  cls:'text-slate-600 bg-slate-100' },
+              { label:'Featured',         val: summary.featuredCount,  cls:'text-amber-600 bg-amber-50' },
+              { label:'Waiting Patients', val: summary.totalWaiting,   cls:'text-indigo-600 bg-indigo-50' },
+              { label:'Completed Today',  val: summary.totalCompleted, cls:'text-emerald-600 bg-emerald-50' },
             ].map(s => (
-              <div key={s.label} className="text-center p-3 bg-white rounded-xl border shadow-sm">
-                <div className={`text-2xl font-bold ${s.cls}`}>{s.val}</div>
-                <div className="text-xs text-muted-foreground">{s.label}</div>
+              <div key={s.label} className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-lg mb-1.5 ${s.cls}`}>
+                  {s.val}
+                </div>
+                <div className="text-xs font-medium text-slate-500">{s.label}</div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Add / Edit Form */}
+        {/* Add / Edit Clinic Form */}
         {showForm && (
-          <Card className="mb-6 border-2 border-primary/30">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">{editId ? `Edit ${editId}` : 'Add New Clinic'}</CardTitle>
+          <Card className="mb-8 border-2 border-primary/40 shadow-lg bg-white animate-in fade-in slide-in-from-top-4 duration-300">
+            <CardHeader className="pb-3 border-b bg-slate-50/50 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-bold text-slate-800 flex items-center gap-2">
+                  {editId ? `Edit Clinic (${editId})` : 'Add New Clinic'}
+                  {!editId && (
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-xs">
+                      Assigned ID: {nextClinicId}
+                    </Badge>
+                  )}
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {editId ? "Update clinic details" : "Creates a new clinic and its dedicated clinic admin login automatically"}
+                </p>
+              </div>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={resetForm}>
+                <X className="w-4 h-4" />
+              </Button>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label>Clinic Name *</Label>
-                  <Input value={form.clinicName} onChange={e => setForm(f=>({...f,clinicName:e.target.value}))} placeholder="Thiru Hospital Clinic" />
+            <CardContent className="space-y-4 pt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-700">Clinic Name *</Label>
+                  <Input
+                    value={form.clinicName}
+                    onChange={e => handleClinicNameChange(e.target.value)}
+                    placeholder="e.g. Dr. Hems Clinic or Aura LifeCare"
+                    className="h-9"
+                  />
+                  {!editId && form.clinicName && (
+                    <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                      <Mail className="w-3 h-3 text-primary" /> Auto-assigned email: <span className="font-mono text-primary font-medium">{form.adminEmail || computeDefaultEmail(form.clinicName, nextClinicId)}</span>
+                    </p>
+                  )}
                 </div>
-                <div className="space-y-1">
-                  <Label>Doctor Name *</Label>
-                  <Input value={form.doctorName} onChange={e => setForm(f=>({...f,doctorName:e.target.value}))} placeholder="Dr. Kumar" />
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-700">Doctor Name *</Label>
+                  <Input
+                    value={form.doctorName}
+                    onChange={e => handleDoctorNameChange(e.target.value)}
+                    placeholder="e.g. Dr. Hems"
+                    className="h-9"
+                  />
                 </div>
-                <div className="space-y-1">
-                  <Label>Phone</Label>
-                  <Input value={form.phone} onChange={e => setForm(f=>({...f,phone:e.target.value}))} placeholder="04xx-xxxxxx" />
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-700">Phone Number</Label>
+                  <div className="relative">
+                    <Phone className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-3" />
+                    <Input
+                      value={form.phone}
+                      onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                      placeholder="044-24567800"
+                      className="pl-8 h-9"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <Label>Status</Label>
-                  <Select value={form.status} onValueChange={v => setForm(f=>({...f,status:v}))}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-700">Clinic Status</Label>
+                  <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Open">Open</SelectItem>
-                      <SelectItem value="Closed">Closed</SelectItem>
+                      <SelectItem value="Open">🟢 Open</SelectItem>
+                      <SelectItem value="Closed">🔴 Closed</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-1 sm:col-span-2">
-                  <Label>Address</Label>
-                  <Input value={form.address} onChange={e => setForm(f=>({...f,address:e.target.value}))} placeholder="123 Main Street, City" />
+
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label className="text-xs font-semibold text-slate-700">Address / Location</Label>
+                  <div className="relative">
+                    <MapPin className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-3" />
+                    <Input
+                      value={form.address}
+                      onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
+                      placeholder="e.g. 24 Gandhi Road, Chennai"
+                      className="pl-8 h-9"
+                    />
+                  </div>
                 </div>
               </div>
 
               {!editId && (
-                <>
-                  <div className="border-t pt-3">
-                    <p className="text-sm font-medium mb-3 text-muted-foreground">Clinic Admin Account (Optional - Auto generated if left blank)</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div className="space-y-1">
-                        <Label>Admin Name</Label>
-                        <Input value={form.adminName} onChange={e => setForm(f=>({...f,adminName:e.target.value}))} placeholder="" />
-                      </div>
-                      <div className="space-y-1">
-                        <Label>Admin Email</Label>
-                        <Input type="email" value={form.adminEmail} onChange={e => setForm(f=>({...f,adminEmail:e.target.value}))} placeholder="" />
-                      </div>
-                      <div className="space-y-1">
-                        <Label>Password</Label>
-                        <Input type="password" value={form.adminPassword} onChange={e => setForm(f=>({...f,adminPassword:e.target.value}))} placeholder="" />
-                      </div>
+                <div className="border-t pt-3.5 bg-slate-50/70 p-3 rounded-lg border border-slate-200">
+                  <div className="flex items-center gap-1.5 mb-2.5">
+                    <UserCheck className="w-4 h-4 text-primary" />
+                    <span className="text-xs font-semibold text-slate-800">Clinic Admin Account (Auto-configured)</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-muted-foreground">Admin Name</Label>
+                      <Input
+                        value={form.adminName}
+                        onChange={e => setForm(f => ({ ...f, adminName: e.target.value }))}
+                        placeholder={form.doctorName || "Doctor / Admin name"}
+                        className="h-8 text-xs bg-white"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-muted-foreground">Admin Login Email</Label>
+                      <Input
+                        type="email"
+                        value={form.adminEmail}
+                        onChange={e => setForm(f => ({ ...f, adminEmail: e.target.value.toLowerCase() }))}
+                        placeholder={computeDefaultEmail(form.clinicName, nextClinicId)}
+                        className="h-8 text-xs bg-white font-mono"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-muted-foreground">Password (Default: sr1011)</Label>
+                      <Input
+                        type="password"
+                        value={form.adminPassword}
+                        onChange={e => setForm(f => ({ ...f, adminPassword: e.target.value }))}
+                        placeholder="sr1011"
+                        className="h-8 text-xs bg-white"
+                      />
                     </div>
                   </div>
-                </>
+                </div>
               )}
 
-              <div className="flex gap-2">
-                <Button variant="medical" onClick={handleSubmit} disabled={busy}>
-                  <Check className="w-4 h-4 mr-1" /> {busy ? 'Saving...' : editId ? 'Update' : 'Create Clinic'}
+              <div className="flex gap-2 justify-end pt-1">
+                <Button variant="outline" size="sm" onClick={resetForm}><X className="w-4 h-4 mr-1" /> Cancel</Button>
+                <Button variant="default" size="sm" onClick={handleSubmit} disabled={busy} className="bg-primary hover:bg-primary/90 shadow">
+                  <Check className="w-4 h-4 mr-1.5" /> {busy ? 'Saving...' : editId ? 'Update Clinic' : 'Create Clinic'}
                 </Button>
-                <Button variant="outline" onClick={resetForm}><X className="w-4 h-4 mr-1" /> Cancel</Button>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Clinic list */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">All Clinics</h2>
-          <Button variant="outline" size="sm" onClick={load}><RefreshCw className="w-4 h-4 mr-1" /> Refresh</Button>
+        {/* Search & Filter Toolbar */}
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="relative w-full md:w-96">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+            <Input
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Search clinic by name, doctor, ID (C001), or city..."
+              className="pl-9 pr-8 h-9 text-xs bg-slate-50 focus:bg-white transition-colors"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+            <div className="flex rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs">
+              {(['ALL', 'Open', 'Closed'] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setStatusFilter(tab)}
+                  className={`px-3 py-1 rounded-md font-medium transition-colors ${
+                    statusFilter === tab
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {tab === 'ALL' ? 'All' : tab}
+                </button>
+              ))}
+            </div>
+
+            <Button variant="outline" size="sm" onClick={load} className="h-8 text-xs">
+              <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
+            </Button>
+          </div>
         </div>
 
+        {/* Results Info */}
+        <div className="flex items-center justify-between mb-3 px-1">
+          <div className="text-xs font-semibold text-slate-600">
+            Showing <span className="text-primary font-bold">{filteredClinics.length}</span> of {clinics.length} clinics
+            {searchTerm && <span className="text-slate-400 ml-1">(filtered by "{searchTerm}")</span>}
+          </div>
+        </div>
+
+        {/* Clinic Cards Grid */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Array.from({length:6}).map((_,i) => <div key={i} className="h-52 bg-muted animate-pulse rounded-xl" />)}
+            {Array.from({length:6}).map((_,i) => <div key={i} className="h-56 bg-slate-200 animate-pulse rounded-xl" />)}
+          </div>
+        ) : filteredClinics.length === 0 ? (
+          <div className="text-center py-16 bg-white rounded-xl border border-dashed border-slate-300">
+            <Search className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+            <p className="text-sm font-semibold text-slate-700">No clinics match your search</p>
+            <p className="text-xs text-muted-foreground mt-1">Try searching for a different name, doctor, or clear filters.</p>
+            <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setStatusFilter('ALL'); }} className="mt-3 text-xs">
+              Reset Search
+            </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {clinics.map(c => {
+            {filteredClinics.map(c => {
               const isOpen = c.status === 'Open';
+              const isDeleting = deletingId === c.clinicId;
+
               return (
-                <Card key={c.clinicId} className={`border-2 ${isOpen ? 'border-primary/20' : 'border-muted'} ${c.featured ? 'ring-2 ring-warning/30' : ''}`}>
-                  <CardHeader className="pb-2">
+                <Card
+                  key={c.clinicId}
+                  className={`border-2 transition-all shadow-sm hover:shadow-md bg-white ${
+                    isOpen ? 'border-slate-200 hover:border-primary/40' : 'border-slate-200 bg-slate-50/50 opacity-90'
+                  } ${c.featured ? 'ring-2 ring-amber-400/40' : ''}`}
+                >
+                  <CardHeader className="pb-2.5">
                     <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <div className="font-semibold text-sm leading-tight">{c.clinicName}</div>
-                        <div className="text-xs text-muted-foreground">{c.doctorName} • {c.clinicId}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+                            {c.clinicId}
+                          </span>
+                          {c.featured && (
+                            <Badge className="bg-amber-100 text-amber-800 border-amber-300 text-[10px] py-0">
+                              ⭐ Featured
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="font-bold text-sm text-slate-900 truncate" title={c.clinicName}>
+                          {c.clinicName}
+                        </div>
+                        <div className="text-xs text-slate-500 font-medium truncate mt-0.5">
+                          {c.doctorName}
+                        </div>
+                        {c.address && (
+                          <div className="text-[11px] text-slate-400 truncate flex items-center gap-1 mt-0.5">
+                            <MapPin className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                            <span className="truncate">{c.address}</span>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex flex-col items-end gap-1">
-                        <Badge
-                          variant={isOpen ? 'default' : 'secondary'}
-                          className={`cursor-pointer text-xs ${isOpen ? 'bg-success/10 text-success border-success/30' : ''}`}
-                          onClick={() => handleToggleStatus(c.clinicId, c.status)}
-                        >
-                          {c.status}
-                        </Badge>
-                        {c.featured && <Badge className="bg-warning/10 text-warning border-warning/30 text-xs">⭐ Featured</Badge>}
-                      </div>
+                      <Badge
+                        variant={isOpen ? 'default' : 'secondary'}
+                        className={`cursor-pointer text-xs font-semibold transition-colors ${
+                          isOpen ? 'bg-emerald-100 text-emerald-700 border-emerald-300 hover:bg-emerald-200' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                        }`}
+                        onClick={() => handleToggleStatus(c.clinicId, c.status)}
+                        title="Click to toggle Open/Closed status"
+                      >
+                        {c.status}
+                      </Badge>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div className="p-2 bg-primary/5 rounded-lg">
-                        <div className="font-bold text-primary">{c.currentToken||0}</div>
-                        <div className="text-[10px] text-muted-foreground">Serving</div>
+
+                  <CardContent className="space-y-3 pt-0">
+                    {/* Live Queue Counts */}
+                    <div className="grid grid-cols-3 gap-1.5 text-center py-2 px-1 bg-slate-50 rounded-lg border border-slate-100">
+                      <div>
+                        <div className="font-bold text-base text-primary">{c.currentToken || 0}</div>
+                        <div className="text-[10px] uppercase font-semibold text-slate-400">Serving</div>
                       </div>
-                      <div className="p-2 bg-accent/5 rounded-lg">
-                        <div className="font-bold text-accent">{c.waitingCount||0}</div>
-                        <div className="text-[10px] text-muted-foreground">Waiting</div>
+                      <div className="border-x border-slate-200">
+                        <div className="font-bold text-base text-amber-600">{c.waitingCount || 0}</div>
+                        <div className="text-[10px] uppercase font-semibold text-slate-400">Waiting</div>
                       </div>
-                      <div className="p-2 bg-muted/30 rounded-lg">
-                        <div className="font-bold">{c.completedCount||0}</div>
-                        <div className="text-[10px] text-muted-foreground">Done</div>
+                      <div>
+                        <div className="font-bold text-base text-emerald-600">{c.completedCount || 0}</div>
+                        <div className="text-[10px] uppercase font-semibold text-slate-400">Done</div>
                       </div>
                     </div>
-                    <div className="flex gap-1 flex-wrap">
-                      <Button size="sm" variant="medical" className="flex-1" onClick={() => handleNext(c.clinicId)} disabled={!isOpen}>
+
+                    {/* Actions Toolbar */}
+                    <div className="flex gap-1.5 flex-wrap pt-1">
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="flex-1 h-8 text-xs bg-primary text-primary-foreground hover:bg-primary/90"
+                        onClick={() => handleNext(c.clinicId)}
+                        disabled={!isOpen}
+                        title="Call Next Patient"
+                      >
                         <SkipForward className="w-3.5 h-3.5 mr-1" /> Next
                       </Button>
-                      <Button size="sm" variant={resetting===c.clinicId?'destructive':'outline'} onClick={() => handleReset(c.clinicId)}>
+
+                      <Button
+                        size="sm"
+                        variant={resetting === c.clinicId ? 'destructive' : 'outline'}
+                        className="h-8 px-2.5"
+                        onClick={() => handleReset(c.clinicId)}
+                        title="Reset Queue"
+                      >
                         <RotateCcw className="w-3.5 h-3.5" />
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleFeatured(c.clinicId, c.featured)}
-                        title={c.featured ? 'Remove from featured' : 'Set as featured'}>
-                        {c.featured ? <StarOff className="w-3.5 h-3.5 text-warning" /> : <Star className="w-3.5 h-3.5" />}
+
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 px-2.5 text-slate-700"
+                        onClick={() => handleFeatured(c.clinicId, c.featured)}
+                        title={c.featured ? 'Remove from featured' : 'Mark as featured'}
+                      >
+                        {c.featured ? <StarOff className="w-3.5 h-3.5 text-amber-500" /> : <Star className="w-3.5 h-3.5" />}
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleEdit(c)}>
+
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 px-2.5 text-slate-700 hover:text-primary"
+                        onClick={() => handleEdit(c)}
+                        title="Edit Clinic"
+                      >
                         <Pencil className="w-3.5 h-3.5" />
                       </Button>
-                      <Button size="sm" variant="destructive" onClick={() => handleDelete(c.clinicId)}>
+
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="h-8 px-2.5 bg-red-600 hover:bg-red-700"
+                        onClick={() => handleDelete(c.clinicId)}
+                        disabled={isDeleting}
+                        title="Delete Clinic & Resequence Numbers"
+                      >
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </div>
-                    <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => navigate(`/clinic/${c.clinicId}`)}>
-                      View Public Page →
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full text-xs text-slate-500 hover:text-primary h-7"
+                      onClick={() => navigate(`/clinic/${c.clinicId}`)}
+                    >
+                      View Live Display →
                     </Button>
                   </CardContent>
                 </Card>

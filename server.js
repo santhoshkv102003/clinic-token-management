@@ -24,7 +24,9 @@ const JWT_SECRET  = process.env.JWT_SECRET  || 'clinic_jwt_secret_key_2025';
 // ─── Initial Seed Data ────────────────────────────────────────────────────────
 
 export function getClinicUsername(clinicName, clinicId) {
-  let cleanName = (clinicName || '').replace(/^(Dr\.|Dr|The)\s+/i, '').trim();
+  let cleanName = (clinicName || '').replace(/^(Dr\.|Dr|Doctor|The)\s*/i, '').trim();
+  // Remove non-alphanumeric leading chars if any
+  cleanName = cleanName.replace(/^[^a-zA-Z0-9]+/, '');
   let firstChar = (cleanName.charAt(0) || 'c').toLowerCase();
   let cid = (clinicId || '').toLowerCase();
   return `${firstChar}${cid}@gmail.com`;
@@ -43,37 +45,37 @@ const INITIAL_CLINICS = [
   { clinicId:'C009', clinicName:'Dr. SR Prime Care',              doctorName:'Dr. SR',          phone:'044-24567809', address:'67 Hospital Road, Vellore',             status:'Open', featured:false, currentToken:0 },
   { clinicId:'C010', clinicName:'Dr. KP Multicare Clinic',        doctorName:'Dr. KP',          phone:'044-24567810', address:'19 Kamaraj Salai, Thoothukudi',         status:'Open', featured:false, currentToken:0 },
 
-  // ── 30 City Clinics ──
-  { clinicId:'C011', clinicName:'Chennai City Care Clinic',       doctorName:'Dr. Rajesh',      phone:'044-24567811', address:'Chennai',                              status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C012', clinicName:'Coimbatore Prime Health',        doctorName:'Dr. Suresh',      phone:'0422-24567812',address:'Coimbatore',                           status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C013', clinicName:'Madurai Family Care',            doctorName:'Dr. Meenakshi',   phone:'0452-24567813',address:'Madurai',                              status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C014', clinicName:'Tiruchirappalli Health Point',   doctorName:'Dr. Ramesh',      phone:'0431-24567814',address:'Tiruchirappalli',                      status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C015', clinicName:'Salem Prime Clinic',             doctorName:'Dr. Vijay',       phone:'0427-24567815',address:'Salem',                                status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C016', clinicName:'Tirunelveli Care Centre',        doctorName:'Dr. Murugan',     phone:'0462-24567816',address:'Tirunelveli',                          status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C017', clinicName:'Erode Health Hub',               doctorName:'Dr. Senthil',     phone:'0424-24567817',address:'Erode',                                status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C018', clinicName:'Vellore Medical Care',           doctorName:'Dr. Anand',       phone:'0416-24567818',address:'Vellore',                              status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C019', clinicName:'Thoothukudi Wellness Clinic',    doctorName:'Dr. Antony',      phone:'0461-24567819',address:'Thoothukudi',                          status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C020', clinicName:'Dindigul Family Clinic',         doctorName:'Dr. Balaji',      phone:'0451-24567820',address:'Dindigul',                             status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C021', clinicName:'Thanjavur HealthCare',           doctorName:'Dr. Chidambaram', phone:'04362-2456721',address:'Thanjavur',                            status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C022', clinicName:'Kanchipuram Prime Care',         doctorName:'Dr. Devaraj',     phone:'044-24567822', address:'Kanchipuram',                          status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C023', clinicName:'Tiruppur City Clinic',           doctorName:'Dr. Ezhil',       phone:'0421-24567823',address:'Tiruppur',                             status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C024', clinicName:'Karur Health Point',             doctorName:'Dr. Gokul',       phone:'04324-2456724',address:'Karur',                                status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C025', clinicName:'Namakkal Family Care',           doctorName:'Dr. Hari',        phone:'04286-2456725',address:'Namakkal',                             status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C026', clinicName:'Cuddalore Health Clinic',        doctorName:'Dr. Ilango',      phone:'04142-2456726',address:'Cuddalore',                            status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C027', clinicName:'Villupuram Care Centre',         doctorName:'Dr. Jayakumar',   phone:'04146-2456727',address:'Villupuram',                           status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C028', clinicName:'Sivaganga Prime Clinic',         doctorName:'Dr. Kannan',      phone:'04575-2456728',address:'Sivaganga',                            status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C029', clinicName:'Ramanathapuram Health Hub',      doctorName:'Dr. Lakshman',    phone:'04567-2456729',address:'Ramanathapuram',                       status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C030', clinicName:'Virudhunagar Family Care',       doctorName:'Dr. Manikandan',  phone:'04562-2456730',address:'Virudhunagar',                         status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C031', clinicName:'Krishnagiri Health Point',       doctorName:'Dr. Naveen',      phone:'04343-2456731',address:'Krishnagiri',                          status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C032', clinicName:'Dharmapuri Prime Care',          doctorName:'Dr. Parthiban',   phone:'04342-2456732',address:'Dharmapuri',                           status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C033', clinicName:'Ariyalur Wellness Clinic',       doctorName:'Dr. Raghav',      phone:'04329-2456733',address:'Ariyalur',                             status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C034', clinicName:'Perambalur Health Centre',       doctorName:'Dr. Shanmugam',   phone:'04328-2456734',address:'Perambalur',                           status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C035', clinicName:'Nagapattinam Care Clinic',       doctorName:'Dr. Thiru',       phone:'04365-2456735',address:'Nagapattinam',                         status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C036', clinicName:'Mayiladuthurai Health Point',    doctorName:'Dr. Udhaya',      phone:'04364-2456736',address:'Mayiladuthurai',                       status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C037', clinicName:'Tenkasi Family Clinic',          doctorName:'Dr. Vignesh',     phone:'04633-2456737',address:'Tenkasi',                              status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C038', clinicName:'Pudukkottai Prime Health',       doctorName:'Dr. Walter',      phone:'04322-2456738',address:'Pudukkottai',                          status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C039', clinicName:'The Nilgiris Wellness Centre',   doctorName:'Dr. Xavier',      phone:'0423-2456739', address:'Ooty',                                 status:'Open', featured:false, currentToken:0 },
-  { clinicId:'C040', clinicName:'Thiruvarur Health Care',         doctorName:'Dr. Yuvaraj',     phone:'04366-2456740',address:'Thiruvarur',                           status:'Open', featured:false, currentToken:0 },
+  // ── 30 Unique Clinics across different locations (district names removed from clinic names) ──
+  { clinicId:'C011', clinicName:'Medanta Care Polyclinic',        doctorName:'Dr. Rajesh',      phone:'044-24567811', address:'Anna Nagar, Chennai',                  status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C012', clinicName:'Aura Health MultiSpeciality',    doctorName:'Dr. Suresh',      phone:'0422-24567812',address:'Gandhipuram, Coimbatore',              status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C013', clinicName:'Meenakshi Life Care Clinic',     doctorName:'Dr. Meenakshi',   phone:'0452-24567813',address:'KK Nagar, Madurai',                     status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C014', clinicName:'Care & Cure Medical Point',      doctorName:'Dr. Ramesh',      phone:'0431-24567814',address:'Thillai Nagar, Tiruchirappalli',       status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C015', clinicName:'Shanthi Family Clinic',          doctorName:'Dr. Vijay',       phone:'0427-24567815',address:'Fairlands, Salem',                     status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C016', clinicName:'Grace Medical Centre',           doctorName:'Dr. Murugan',     phone:'0462-24567816',address:'Palayamkottai, Tirunelveli',           status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C017', clinicName:'Surya Multispeciality Hub',      doctorName:'Dr. Senthil',     phone:'0424-24567817',address:'Collectorate Road, Erode',             status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C018', clinicName:'Anugraha LifeCare Clinic',       doctorName:'Dr. Anand',       phone:'0416-24567818',address:'Katpadi, Vellore',                      status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C019', clinicName:'Pearl City Health Hub',          doctorName:'Dr. Antony',      phone:'0461-24567819',address:'Beach Road, Thoothukudi',               status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C020', clinicName:'RockFort Wellness Clinic',       doctorName:'Dr. Balaji',      phone:'0451-24567820',address:'Main Bazaar, Dindigul',                 status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C021', clinicName:'Temple City Health Point',       doctorName:'Dr. Chidambaram', phone:'04362-2456721',address:'Medical College Road, Thanjavur',       status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C022', clinicName:'Silk City Family Clinic',        doctorName:'Dr. Devaraj',     phone:'044-24567822', address:'Gandhi Road, Kanchipuram',             status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C023', clinicName:'Knit City Health Care',          doctorName:'Dr. Ezhil',       phone:'0421-24567823',address:'Avinashi Road, Tiruppur',              status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C024', clinicName:'Cauvery Riverview Clinic',       doctorName:'Dr. Gokul',       phone:'04324-2456724',address:'Kovai Road, Karur',                     status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C025', clinicName:'Poultry Prime Health Centre',    doctorName:'Dr. Hari',        phone:'04286-2456725',address:'Paramathi Road, Namakkal',              status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C026', clinicName:'Silver Beach Medical Point',     doctorName:'Dr. Ilango',      phone:'04142-2456726',address:'Imperial Road, Cuddalore',             status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C027', clinicName:'Apex Family Care Centre',        doctorName:'Dr. Jayakumar',   phone:'04146-2456727',address:'East Pondy Road, Villupuram',          status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C028', clinicName:'Chettinad Prime Clinic',         doctorName:'Dr. Kannan',      phone:'04575-2456728',address:'Madurai Road, Sivaganga',               status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C029', clinicName:'Sethu Wellness Hub',             doctorName:'Dr. Lakshman',    phone:'04567-2456729',address:'NH Road, Ramanathapuram',              status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C030', clinicName:'Sri Andal Health Care',          doctorName:'Dr. Manikandan',  phone:'04562-2456730',address:'Katchery Road, Virudhunagar',          status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C031', clinicName:'Rose Valley Health Point',       doctorName:'Dr. Naveen',      phone:'04343-2456731',address:'Bangalore Road, Krishnagiri',           status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C032', clinicName:'Hogenakkal Prime Clinic',        doctorName:'Dr. Parthiban',   phone:'04342-2456732',address:'Pennagaram Road, Dharmapuri',          status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C033', clinicName:'Gemstone Wellness Clinic',       doctorName:'Dr. Raghav',      phone:'04329-2456733',address:'Bus Stand Road, Ariyalur',              status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C034', clinicName:'Sugar City Health Centre',       doctorName:'Dr. Shanmugam',   phone:'04328-2456734',address:'Collectorate Complex, Perambalur',      status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C035', clinicName:'Coastline Care Clinic',          doctorName:'Dr. Thiru',       phone:'04365-2456735',address:'Public Office Road, Nagapattinam',      status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C036', clinicName:'Mayil Health Point',             doctorName:'Dr. Udhaya',      phone:'04364-2456736',address:'Kutchery Road, Mayiladuthurai',        status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C037', clinicName:'Courtallam Family Clinic',       doctorName:'Dr. Vignesh',     phone:'04633-2456737',address:'Main Falls Road, Tenkasi',               status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C038', clinicName:'Royal Palace Health Care',       doctorName:'Dr. Walter',      phone:'04322-2456738',address:'Town Hall Road, Pudukkottai',           status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C039', clinicName:'Blue Mountain Wellness Centre',  doctorName:'Dr. Xavier',      phone:'0423-2456739', address:'Commercial Road, Ooty',                 status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C040', clinicName:'Green Meadows Health Care',      doctorName:'Dr. Yuvaraj',     phone:'04366-2456740',address:'South Street, Thiruvarur',              status:'Open', featured:false, currentToken:0 },
 
   // ── 10 Brand / Multispeciality Clinics ──
   { clinicId:'C041', clinicName:'Lotus LifeCare Clinic',          doctorName:'Dr. Leela',       phone:'044-24567841', address:'100 Grand Mall Road, Chennai',         status:'Open', featured:false, currentToken:0 },
@@ -550,6 +552,83 @@ app.put('/api/clinics/:clinicId', authMiddleware, requireClinicAccess, async (re
 
     await emitClinicUpdate(cid);
     res.json(c || { clinicId: cid, status });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Delete clinic & reassign / resequence all clinic numbers
+app.delete('/api/clinics/:clinicId', authMiddleware, requireSuperAdmin, async (req, res) => {
+  try {
+    const targetCid = req.params.clinicId.toUpperCase();
+    const existing = await dbGetClinic(targetCid);
+    if (!existing) return res.status(404).json({ error: 'Clinic not found' });
+
+    // 1. Delete target clinic, associated tokens, and admin user
+    if (isMongoConnected) {
+      try {
+        await Clinic.deleteOne({ clinicId: targetCid });
+        await Token.deleteMany({ clinicId: targetCid });
+        await User.deleteMany({ clinicId: targetCid });
+      } catch (e) { isMongoConnected = false; }
+    }
+
+    inMemoryClinics = inMemoryClinics.filter(c => c.clinicId !== targetCid);
+    inMemoryTokens  = inMemoryTokens.filter(t => t.clinicId !== targetCid);
+    inMemoryUsers   = inMemoryUsers.filter(u => u.clinicId !== targetCid);
+
+    // 2. Fetch all remaining clinics and sort by previous numeric order
+    let allRemaining = [];
+    if (isMongoConnected) {
+      try {
+        allRemaining = await Clinic.find({});
+      } catch (e) {
+        isMongoConnected = false;
+        allRemaining = inMemoryClinics;
+      }
+    } else {
+      allRemaining = inMemoryClinics;
+    }
+
+    allRemaining.sort((a, b) => {
+      const numA = parseInt(String(a.clinicId || '').replace(/\D/g, ''), 10) || 0;
+      const numB = parseInt(String(b.clinicId || '').replace(/\D/g, ''), 10) || 0;
+      return numA - numB;
+    });
+
+    // 3. Resequence remaining clinics sequentially C001, C002...
+    for (let i = 0; i < allRemaining.length; i++) {
+      const newNum = i + 1;
+      const newCid = 'C' + String(newNum).padStart(3, '0');
+      const oldCid = allRemaining[i].clinicId;
+
+      if (oldCid !== newCid) {
+        const clinicDoc = allRemaining[i];
+        const newEmail = getClinicUsername(clinicDoc.clinicName, newCid);
+
+        if (isMongoConnected) {
+          try {
+            await Clinic.updateOne({ _id: clinicDoc._id }, { $set: { clinicId: newCid } });
+            await Token.updateMany({ clinicId: oldCid }, { $set: { clinicId: newCid } });
+            await User.updateOne({ clinicId: oldCid }, { $set: { clinicId: newCid, email: newEmail } });
+          } catch (e) { isMongoConnected = false; }
+        }
+
+        const memClinic = inMemoryClinics.find(c => c.clinicId === oldCid);
+        if (memClinic) memClinic.clinicId = newCid;
+
+        inMemoryTokens.forEach(t => {
+          if (t.clinicId === oldCid) t.clinicId = newCid;
+        });
+
+        const memUser = inMemoryUsers.find(u => u.clinicId === oldCid);
+        if (memUser) {
+          memUser.clinicId = newCid;
+          memUser.email = newEmail;
+        }
+      }
+    }
+
+    io.emit('clinics:refresh');
+    res.json({ message: `Clinic ${targetCid} deleted and remaining clinics resequenced successfully` });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
