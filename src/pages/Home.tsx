@@ -102,13 +102,18 @@ export default function Home() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // When search box is touched or focused, show results in alphabetical order
-  const isBrowsingAll = isSearchFocused && !search.trim();
-  const isFiltering = search.trim().length > 0;
-  const showAlphabeticalList = isBrowsingAll || isFiltering;
-  const displayCards = showAlphabeticalList
-    ? (isBrowsingAll ? allClinicsAlphabetical : results)
-    : top3;
+  // Tab filter: 'ALL' | 'TOP3' | 'OPEN'
+  const [activeTab, setActiveTab] = useState<'ALL' | 'TOP3' | 'OPEN'>('ALL');
+
+  // Compute display cards based on search and active tab
+  let displayCards = allClinicsAlphabetical;
+  if (search.trim().length > 0) {
+    displayCards = results;
+  } else if (activeTab === 'TOP3') {
+    displayCards = top3.length > 0 ? top3 : allClinicsAlphabetical.slice(0, 3);
+  } else if (activeTab === 'OPEN') {
+    displayCards = allClinicsAlphabetical.filter(c => c.status === 'Open');
+  }
 
   // Handle Admin Login
   const handleAdminLogin = async (e: React.FormEvent) => {
@@ -366,32 +371,58 @@ export default function Home() {
           </div>
         )}
 
-        {/* ── Section Heading ── */}
-        <div className="flex items-center justify-between mb-5">
+        {/* ── Section Heading & Category Tabs ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
           <div className="flex items-center gap-2">
             <h2 className="text-base sm:text-lg font-bold text-slate-800 drop-shadow-sm flex items-center gap-2">
-              {showAlphabeticalList
-                ? searching
-                  ? "Searching..."
-                  : `🔤 Clinics (Alphabetical A-Z: ${displayCards.length})`
-                : "🔥 Most Active Clinics"}
+              {search.trim()
+                ? `🔍 Results for "${search}" (${displayCards.length})`
+                : activeTab === 'ALL'
+                ? `🏥 All Clinics (${displayCards.length})`
+                : activeTab === 'TOP3'
+                ? `🔥 Top Active Clinics (${displayCards.length})`
+                : `🟢 Open Clinics (${displayCards.length})`}
             </h2>
-            {showAlphabeticalList && (
-              <Badge className="bg-[#00a6d6] text-white text-xs font-semibold px-2 py-0.5">
-                A → Z
-              </Badge>
-            )}
           </div>
 
-          <div className="flex items-center gap-2">
-            {showAlphabeticalList && (
+          <div className="flex items-center gap-2 flex-wrap">
+            {!search.trim() && (
+              <div className="flex rounded-xl border border-white/80 bg-white/70 backdrop-blur p-1 shadow-sm text-xs">
+                <button
+                  onClick={() => setActiveTab('ALL')}
+                  className={`px-3 py-1 rounded-lg font-bold transition ${
+                    activeTab === 'ALL' ? 'bg-[#00a6d6] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  All ({allClinicsAlphabetical.length})
+                </button>
+                <button
+                  onClick={() => setActiveTab('TOP3')}
+                  className={`px-3 py-1 rounded-lg font-bold transition ${
+                    activeTab === 'TOP3' ? 'bg-[#00a6d6] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  🔥 Top Active
+                </button>
+                <button
+                  onClick={() => setActiveTab('OPEN')}
+                  className={`px-3 py-1 rounded-lg font-bold transition ${
+                    activeTab === 'OPEN' ? 'bg-[#00a6d6] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  🟢 Open Now
+                </button>
+              </div>
+            )}
+
+            {search && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="text-xs text-slate-600 bg-white/70 hover:bg-white rounded-xl"
                 onClick={() => { setSearch(""); setIsSearchFocused(false); }}
               >
-                Reset
+                Clear Search
               </Button>
             )}
             <Button
