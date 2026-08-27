@@ -150,20 +150,38 @@ const Clinic = mongoose.model('Clinic', clinicSchema);
 const User   = mongoose.model('User',   userSchema);
 const Token  = mongoose.model('Token',  tokenSchema);
 
-// Connect to MongoDB with timeout handling
-mongoose.set('bufferCommands', false); // Do not buffer queries indefinitely if MongoDB is offline
+let isMongoConnected = false;
+let isSeeded = false;
 
-mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 4000 })
-  .then(async () => {
+async function ensureMongo() {
+  if (mongoose.connection.readyState === 1) {
+    isMongoConnected = true;
+    return;
+  }
+  try {
+    await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 });
     isMongoConnected = true;
     console.log('✅ MongoDB connected to Atlas');
-    await seedMongoData();
-  })
-  .catch(err => {
+    if (!isSeeded) {
+      isSeeded = true;
+      await seedMongoData();
+    }
+  } catch (err) {
     isMongoConnected = false;
     console.warn('⚠️ MongoDB Atlas connection notice:', err.message);
-    console.log('⚡ Running with robust in-memory database store (Full functionality active!)');
-  });
+  }
+}
+
+// Initial connection attempt
+ensureMongo();
+
+// Middleware to ensure DB connection on serverless/cold starts
+app.use(async (req, res, next) => {
+  if (!isMongoConnected || mongoose.connection.readyState !== 1) {
+    await ensureMongo();
+  }
+  next();
+});
 
 async function seedMongoData() {
   try {
