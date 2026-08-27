@@ -705,4 +705,8 @@ app.get('/api/admin/summary', authMiddleware, requireSuperAdmin, async (req, res
 app.use(express.static(path.join(__dirname, 'dist')));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'dist', 'index.html')));
 
-httpServer.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+if (process.env.VERCEL !== '1' && process.env.NODE_ENV !== 'production' || process.env.PORT) {
+  httpServer.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+}
+
+export default app;

@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_API_BASE || (import.meta.env.PROD ? 'https://multi-clinic-token-management.onrender.com' : '');
+const BASE = import.meta.env.VITE_API_BASE || '';
 
 function headers(token?: string | null) {
   const h: Record<string, string> = { 'Content-Type': 'application/json' };
