@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-const BASE = import.meta.env.VITE_API_BASE || (import.meta.env.PROD ? 'https://multi-clinic-token-management.onrender.com' : '');
+const BASE = import.meta.env.VITE_API_BASE || '';
 
 export interface AuthUser {
   name: string;
