@@ -455,12 +455,14 @@ export default function Home() {
         )}
 
         {/* ── Empty State ── */}
-        {!loading && showAlphabeticalList && displayCards.length === 0 && !searching && (
+        {!loading && displayCards.length === 0 && !searching && (
           <div className="text-center py-16 bg-white/60 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm max-w-md mx-auto">
             <Search className="w-12 h-12 mx-auto mb-3 text-slate-400" />
-            <p className="text-slate-800 text-lg font-bold">No clinics found for "{search}"</p>
+            <p className="text-slate-800 text-lg font-bold">
+              {search.trim() ? `No clinics found for "${search}"` : "No clinics found"}
+            </p>
             <p className="text-slate-500 text-sm mt-1">Try another letter or name.</p>
-            {isSuperAdmin && (
+            {isSuperAdmin && search.trim() && (
               <Button
                 onClick={() => { setClinicName(search); setShowAddClinicModal(true); }}
                 className="mt-4 bg-[#00a6d6] hover:bg-[#0092bd] text-white rounded-xl"
