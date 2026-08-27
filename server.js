@@ -88,6 +88,8 @@ const INITIAL_CLINICS = [
   { clinicId:'C048', clinicName:'Unity Family Health',            doctorName:'Dr. Uma',         phone:'044-24567848', address:'81 Unity Plaza, Chennai',              status:'Open', featured:false, currentToken:0 },
   { clinicId:'C049', clinicName:'RoyalCare Clinic',               doctorName:'Dr. Raghu',       phone:'044-24567849', address:'95 Palace Road, Chennai',              status:'Open', featured:false, currentToken:0 },
   { clinicId:'C050', clinicName:'BrightLife Health Centre',       doctorName:'Dr. Balan',       phone:'044-24567850', address:'14 Sunrise Avenue, Chennai',           status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C051', clinicName:'Dr. Zenith Care Clinic',         doctorName:'Dr. Zenith',      phone:'044-24567851', address:'24 Horizon Tower, Chennai',            status:'Open', featured:false, currentToken:0 },
+  { clinicId:'C052', clinicName:'Harmony Health Clinic',          doctorName:'Dr. Harini',      phone:'044-24567852', address:'78 Park Avenue, Coimbatore',           status:'Open', featured:false, currentToken:0 },
 ];
 
 const DEFAULT_PASSWORD = 'sr1011';
@@ -109,8 +111,6 @@ const INITIAL_USERS = [
 let inMemoryClinics = JSON.parse(JSON.stringify(INITIAL_CLINICS));
 let inMemoryTokens  = [];
 let inMemoryUsers   = JSON.parse(JSON.stringify(INITIAL_USERS));
-
-let isMongoConnected = false;
 
 // ─── Mongoose Schemas & Models ────────────────────────────────────────────────
 
