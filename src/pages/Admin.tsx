@@ -57,14 +57,14 @@ export default function AdminLogin() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
               <div className="space-y-1">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email or Clinic ID</Label>
                 <Input
                   id="email"
-                  type="email"
+                  type="text"
                   name="admin_login_email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="Enter the mail"
+                  placeholder="e.g. sc001@gmail.com or C001"
                   required
                   autoComplete="off"
                 />

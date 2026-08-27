@@ -284,15 +284,21 @@ async function dbCreateToken(data) {
   return newToken;
 }
 
-async function dbFindUserByEmail(email) {
-  const em = (email || '').toLowerCase().trim();
+async function dbFindUserByEmail(emailOrId) {
+  const em = (emailOrId || '').toLowerCase().trim();
+  const cid = (emailOrId || '').toUpperCase().trim();
   if (isMongoConnected) {
     try {
-      const u = await User.findOne({ email: em });
+      const u = await User.findOne({
+        $or: [
+          { email: em },
+          { clinicId: cid }
+        ]
+      });
       if (u) return { ...u.toObject(), passwordHash: u.password };
     } catch (e) { isMongoConnected = false; }
   }
-  return inMemoryUsers.find(u => u.email.toLowerCase() === em) || null;
+  return inMemoryUsers.find(u => u.email.toLowerCase() === em || (u.clinicId && u.clinicId.toUpperCase() === cid)) || null;
 }
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
@@ -365,7 +371,7 @@ app.post('/api/auth/login', async (req, res) => {
     const user = await dbFindUserByEmail(email);
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
-    const match = await bcrypt.compare(password, user.passwordHash || user.password || '');
+    const match = await bcrypt.compare(password.trim(), user.passwordHash || user.password || '');
     if (!match) return res.status(401).json({ error: 'Invalid credentials' });
 
     const token = jwt.sign(
