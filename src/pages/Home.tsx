@@ -461,15 +461,15 @@ export default function Home() {
 
           <form onSubmit={handleAdminLogin} className="space-y-4 py-2" autoComplete="off">
             <div className="space-y-1">
-              <Label className="text-xs font-semibold text-slate-700">Email Address</Label>
+              <Label className="text-xs font-semibold text-slate-700">Email / Username</Label>
               <Input
                 required
-                type="email"
+                type="text"
                 name="superadmin_email_input"
                 autoComplete="off"
                 value={adminEmail}
                 onChange={(e) => setAdminEmail(e.target.value)}
-                placeholder="Enter the mail"
+                placeholder="superadmin@clinic.com or santhosh@gmail.com"
                 className="rounded-xl border-slate-200"
               />
             </div>
@@ -483,9 +483,14 @@ export default function Home() {
                 autoComplete="new-password"
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
-                placeholder="Enter the password"
+                placeholder="Enter password (e.g. sr1011)"
                 className="rounded-xl border-slate-200"
               />
+            </div>
+
+            <div className="bg-sky-50 border border-sky-100 rounded-lg p-2.5 text-[11px] text-sky-800 flex items-center justify-between">
+              <span>Default Super Admin: <b>superadmin@clinic.com</b></span>
+              <span className="bg-sky-200/60 px-1.5 py-0.5 rounded font-mono font-semibold">sr1011</span>
             </div>
 
             <Button

@@ -57,14 +57,14 @@ export default function AdminLogin() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
               <div className="space-y-1">
-                <Label htmlFor="email">Email or Clinic ID</Label>
+                <Label htmlFor="email">Email, Clinic ID, or Username</Label>
                 <Input
                   id="email"
                   type="text"
                   name="admin_login_email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="e.g. sc001@gmail.com or C001"
+                  placeholder="superadmin@clinic.com, C001, or sc001@gmail.com"
                   required
                   autoComplete="off"
                 />
@@ -77,11 +77,23 @@ export default function AdminLogin() {
                   name="admin_login_password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="Enter the password"
+                  placeholder="Enter password (e.g. sr1011)"
                   required
                   autoComplete="new-password"
                 />
               </div>
+
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-2.5 text-[11px] text-slate-600 space-y-1">
+                <div className="flex justify-between items-center">
+                  <span>Super Admin: <b className="text-slate-800">superadmin@clinic.com</b></span>
+                  <span className="font-mono bg-primary/10 text-primary px-1.5 py-0.2 rounded font-semibold">sr1011</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Clinic Admin: <b className="text-slate-800">C001</b> (or clinic email)</span>
+                  <span className="font-mono bg-primary/10 text-primary px-1.5 py-0.2 rounded font-semibold">sr1011</span>
+                </div>
+              </div>
+
               <Button type="submit" className="w-full" variant="medical" disabled={busy}>
                 <LogIn className="w-4 h-4 mr-2" />
                 {busy ? "Logging in..." : "Login"}
