@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Plus, Pencil, Trash2, X, Check, Search, MapPin, Mail, RefreshCw } from "lucide-react";
-import { fetchClinics, createClinic, updateClinic, deleteClinic } from "@/services/api";
+import { fetchClinics, createClinic, updateClinic, deleteClinic, fetchNextClinicId } from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 import { computeDefaultEmail } from "./AdminPanel";
 
@@ -24,11 +24,14 @@ export default function AdminClinics() {
   const [searchTerm,   setSearchTerm]   = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "Open" | "Closed">("ALL");
   const [busy,         setBusy]         = useState(false);
+  // nextClinicId fetched from backend — never computed client-side
+  const [nextClinicId, setNextClinicId] = useState<string>('C070');
 
   const [form, setForm] = useState({
     clinicId: "",
     clinicName: "",
     doctorName: "",
+    city: "Chennai",
     phone: "",
     address: "",
     status: "Open",
@@ -37,8 +40,6 @@ export default function AdminClinics() {
     adminPassword: "sr1011"
   });
 
-  const nextClinicId = 'C' + String(clinics.length + 1).padStart(3, '0');
-
   useEffect(() => {
     load();
   }, []);
@@ -46,8 +47,12 @@ export default function AdminClinics() {
   const load = async () => {
     try {
       setLoading(true);
-      const data = await fetchClinics(token || undefined);
+      const [data, nextId] = await Promise.all([
+        fetchClinics(token || ''),
+        fetchNextClinicId(token || '')
+      ]);
       setClinics(data);
+      setNextClinicId(nextId);
     } catch {
       toast({ title: "Failed to load clinics", variant: "destructive" });
     } finally {
@@ -60,6 +65,7 @@ export default function AdminClinics() {
       clinicId: "",
       clinicName: "",
       doctorName: "",
+      city: "Chennai",
       phone: "",
       address: "",
       status: "Open",
@@ -104,25 +110,27 @@ export default function AdminClinics() {
         await updateClinic(editId, {
           clinicName: form.clinicName,
           doctorName: form.doctorName,
-          phone: form.phone,
-          address: form.address,
-          status: form.status
-        }, token || undefined);
+          city:       form.city,
+          phone:      form.phone,
+          address:    form.address,
+          status:     form.status
+        }, token || '');
         toast({ title: "Clinic updated ✅" });
       } else {
+        // Do NOT send clinicId or adminEmail — always generated server-side
         const payload = {
-          clinicId: nextClinicId,
-          clinicName: form.clinicName,
-          doctorName: form.doctorName,
-          phone: form.phone,
-          address: form.address,
-          status: form.status,
-          adminName: form.adminName || form.doctorName,
-          adminEmail: form.adminEmail || computeDefaultEmail(form.clinicName, nextClinicId),
+          clinicName:    form.clinicName,
+          doctorName:    form.doctorName,
+          city:          form.city || 'Chennai',
+          phone:         form.phone,
+          address:       form.address,
+          status:        form.status,
+          adminName:     form.adminName || form.doctorName,
           adminPassword: form.adminPassword || "sr1011"
         };
-        await createClinic(payload, token || undefined);
-        toast({ title: `Clinic ${nextClinicId} added ✅` });
+        const result = await createClinic(payload, token || '');
+        const createdId = result?.clinic?.clinicId || nextClinicId;
+        toast({ title: `Clinic ${createdId} added ✅` });
       }
       resetForm();
       load();
@@ -138,6 +146,7 @@ export default function AdminClinics() {
       clinicId: c.clinicId,
       clinicName: c.clinicName,
       doctorName: c.doctorName,
+      city: c.city || "Chennai",
       phone: c.phone || "",
       address: c.address || "",
       status: c.status,

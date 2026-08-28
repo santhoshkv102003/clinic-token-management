@@ -23,16 +23,111 @@ const JWT_SECRET  = process.env.JWT_SECRET  || 'clinic_jwt_secret_key_2025';
 
 // ─── Initial Seed Data ────────────────────────────────────────────────────────
 
-export function getClinicUsername(clinicName, clinicId) {
-  let cleanName = (clinicName || '').replace(/^(Dr\.|Dr|Doctor|The)\s*/i, '').trim();
-  // Remove non-alphanumeric leading chars if any
-  cleanName = cleanName.replace(/^[^a-zA-Z0-9]+/, '');
-  let firstChar = (cleanName.charAt(0) || 'c').toLowerCase();
-  let cid = (clinicId || '').toLowerCase();
-  return `${firstChar}${cid}@gmail.com`;
+/**
+ * Generates a clinic email from the clinic name and clinic ID.
+ *
+ * Rule (simple):
+ *  - Strip leading "Dr.", "Dr", or "Doctor" prefix (case-insensitive).
+ *  - Take the FIRST letter of the first word only.
+ *  - Append the numeric part of the clinic ID (e.g. "010" from "C010").
+ *  - Format: {firstLetter}{numericId}@gmail.com
+ *
+ * Examples:
+ *   Dr.Santhosh Health Center, C010 → s010@gmail.com
+ *   Maambalam Health Centre,   C014 → m014@gmail.com
+ *   Arogya Family Care,        C021 → a021@gmail.com
+ *   SR Prime Care,             C018 → s018@gmail.com
+ *   KP Multicare Clinic,       C019 → k019@gmail.com
+ *   Dr.Karthi Prime Clinic,    C011 → k011@gmail.com
+ */
+export function generateClinicEmail(clinicName, clinicId) {
+  // Extract only the numeric portion of the ID (e.g. "C010" → "010")
+  const numericId = (clinicId || '').replace(/\D/g, '');
+
+  // Strip Dr./Doctor prefix, then take the first letter of the first word
+  const name = (clinicName || '').replace(/^(Dr\.|Dr|Doctor)\s*/i, '').trim();
+  const firstLetter = (name.charAt(0) || 'c').toLowerCase();
+
+  return `${firstLetter}${numericId}@gmail.com`;
 }
 
-const INITIAL_CLINICS = [];
+export function getClinicUsername(clinicName, clinicId) {
+  return generateClinicEmail(clinicName, clinicId);
+}
+
+const INITIAL_CLINICS = [
+  // ── CHENNAI (C010 to C019) ──
+  { clinicId: 'C010', clinicName: 'Dr.Santhosh Health Center', doctorName: 'Santhosh', city: 'Chennai', phone: '044-2456010', address: 'Chennai, Tamil Nadu', status: 'Open', featured: true, currentToken: 0 },
+  { clinicId: 'C011', clinicName: 'Dr.Karthi Prime Clinic',    doctorName: 'Karthi',   city: 'Chennai', phone: '044-2456011', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C012', clinicName: 'Dr.Dev LifeCare Clinic',    doctorName: 'Dev',      city: 'Chennai', phone: '044-2456012', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C013', clinicName: 'Dr.Pugazh Medical Centre',  doctorName: 'Pugazh',   city: 'Chennai', phone: '044-2456013', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C014', clinicName: 'Maambalam Health Centre',   doctorName: 'Maambalam',city: 'Chennai', phone: '044-2456014', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C015', clinicName: 'Rithika Care Clinic',       doctorName: 'Rithika',  city: 'Chennai', phone: '044-2456015', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C016', clinicName: 'Maha Wellness Clinic',      doctorName: 'Maha',     city: 'Chennai', phone: '044-2456016', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C017', clinicName: 'Vels Family Clinic',        doctorName: 'Vels',     city: 'Chennai', phone: '044-2456017', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C018', clinicName: 'SR Prime Care',             doctorName: 'Praba',    city: 'Chennai', phone: '044-2456018', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C019', clinicName: 'KP Multicare Clinic',       doctorName: 'Keerthi',  city: 'Chennai', phone: '044-2456019', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+
+  // ── COIMBATORE (C020 to C029) ──
+  { clinicId: 'C020', clinicName: 'Dr.Nalam Health Clinic',    doctorName: 'Nalam',    city: 'Coimbatore', phone: '0422-2456020', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: true, currentToken: 0 },
+  { clinicId: 'C021', clinicName: 'Arogya Family Care',        doctorName: 'Aravind',  city: 'Coimbatore', phone: '0422-2456021', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C022', clinicName: 'Dr.Kavin Medical Centre',   doctorName: 'Kavin',    city: 'Coimbatore', phone: '0422-2456022', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C023', clinicName: 'Prime Health Point',        doctorName: 'Divya',    city: 'Coimbatore', phone: '0422-2456023', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C024', clinicName: 'Dr.Rajesh Care Centre',     doctorName: 'Rajesh',   city: 'Coimbatore', phone: '0422-2456024', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C025', clinicName: 'Anitha Wellness Centre',    doctorName: 'Anitha',   city: 'Coimbatore', phone: '0422-2456025', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C026', clinicName: 'Dr.Suresh LifeCare Clinic', doctorName: 'Suresh',   city: 'Coimbatore', phone: '0422-2456026', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C027', clinicName: 'Family Health Hub',         doctorName: 'Priya',    city: 'Coimbatore', phone: '0422-2456027', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C028', clinicName: 'Dr.Mohan Prime Health',     doctorName: 'Mohan',    city: 'Coimbatore', phone: '0422-2456028', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C029', clinicName: 'Dr.Kavya Medical Care',     doctorName: 'Kavya',    city: 'Coimbatore', phone: '0422-2456029', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+
+  // ── MADURAI (C030 to C039) ──
+  { clinicId: 'C030', clinicName: 'Dr.Arogya Health Centre',   doctorName: 'Arogya',   city: 'Madurai', phone: '0452-2456030', address: 'Madurai, Tamil Nadu', status: 'Open', featured: true, currentToken: 0 },
+  { clinicId: 'C031', clinicName: 'Sai Care Clinic',           doctorName: 'Sai',      city: 'Madurai', phone: '0452-2456031', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C032', clinicName: 'Dr.Vijay Family Clinic',    doctorName: 'Vijay',    city: 'Madurai', phone: '0452-2456032', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C033', clinicName: 'Harish Medical Centre',     doctorName: 'Harish',   city: 'Madurai', phone: '0452-2456033', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C034', clinicName: 'Dr.Lakshmi Care Centre',    doctorName: 'Lakshmi',  city: 'Madurai', phone: '0452-2456034', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C035', clinicName: 'Bala Health Clinic',        doctorName: 'Bala',     city: 'Madurai', phone: '0452-2456035', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C036', clinicName: 'Dr.Deepak Wellness Clinic', doctorName: 'Deepak',   city: 'Madurai', phone: '0452-2456036', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C037', clinicName: 'Rekha Prime Care',          doctorName: 'Rekha',    city: 'Madurai', phone: '0452-2456037', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C038', clinicName: 'Dr.Manikandan Family Care', doctorName: 'Manikandan', city: 'Madurai', phone: '0452-2456038', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C039', clinicName: 'Swetha Health Point',       doctorName: 'Swetha',   city: 'Madurai', phone: '0452-2456039', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+
+  // ── TIRUNELVELI (C040 to C049) ──
+  { clinicId: 'C040', clinicName: 'Dr.Amar LifeCare Centre',   doctorName: 'Amar',     city: 'Tirunelveli', phone: '0462-2456040', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C041', clinicName: 'Bharath Medical Care',      doctorName: 'Bharath',  city: 'Tirunelveli', phone: '0462-2456041', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C042', clinicName: 'Dr.Chitra Health Clinic',   doctorName: 'Chitra',   city: 'Tirunelveli', phone: '0462-2456042', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C043', clinicName: 'Dinesh Family Health',      doctorName: 'Dinesh',   city: 'Tirunelveli', phone: '0462-2456043', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C044', clinicName: 'Dr.Ezhil Care Clinic',      doctorName: 'Ezhil',    city: 'Tirunelveli', phone: '0462-2456044', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C045', clinicName: 'Faizal Wellness Centre',    doctorName: 'Faizal',   city: 'Tirunelveli', phone: '0462-2456045', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C046', clinicName: 'Dr.Gokul Prime Clinic',     doctorName: 'Gokul',    city: 'Tirunelveli', phone: '0462-2456046', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C047', clinicName: 'Hema Family Care',          doctorName: 'Hema',     city: 'Tirunelveli', phone: '0462-2456047', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C048', clinicName: 'Dr.Indhu Medical Centre',   doctorName: 'Indhu',    city: 'Tirunelveli', phone: '0462-2456048', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C049', clinicName: 'Jeeva Health Point',        doctorName: 'Jeeva',    city: 'Tirunelveli', phone: '0462-2456049', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+
+  // ── KANNIYAKUMARI (C050 to C059) ──
+  { clinicId: 'C050', clinicName: 'Dr.Kannan Health Centre',   doctorName: 'Kannan',   city: 'Kanniyakumari', phone: '04652-2456050', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C051', clinicName: 'Latha Care Clinic',         doctorName: 'Latha',    city: 'Kanniyakumari', phone: '04652-2456051', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C052', clinicName: 'Dr.Murali Medical Care',    doctorName: 'Murali',   city: 'Kanniyakumari', phone: '04652-2456052', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C053', clinicName: 'Nithya Family Clinic',      doctorName: 'Nithya',   city: 'Kanniyakumari', phone: '04652-2456053', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C054', clinicName: 'Dr.Oviya Wellness Clinic',  doctorName: 'Oviya',    city: 'Kanniyakumari', phone: '04652-2456054', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C055', clinicName: 'Prakash Prime Care',        doctorName: 'Prakash',  city: 'Kanniyakumari', phone: '04652-2456055', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C056', clinicName: 'Dr.Ramesh LifeCare',        doctorName: 'Ramesh',   city: 'Kanniyakumari', phone: '04652-2456056', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C057', clinicName: 'Sindhu Health Centre',      doctorName: 'Sindhu',   city: 'Kanniyakumari', phone: '04652-2456057', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C058', clinicName: 'Dr.Tamilselvan Medical Centre', doctorName: 'Tamilselvan', city: 'Kanniyakumari', phone: '04652-2456058', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C059', clinicName: 'Uma Family Health',         doctorName: 'Uma',      city: 'Kanniyakumari', phone: '04652-2456059', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+
+  // ── TRICHY (C060 to C069) ──
+  { clinicId: 'C060', clinicName: 'Dr.Vasanth Care Clinic',    doctorName: 'Vasanth',  city: 'Trichy', phone: '0431-2456060', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C061', clinicName: 'Yamini Health Centre',      doctorName: 'Yamini',   city: 'Trichy', phone: '0431-2456061', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C062', clinicName: 'Dr.Akash Prime Health',     doctorName: 'Akash',    city: 'Trichy', phone: '0431-2456062', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C063', clinicName: 'Bhavani Medical Centre',    doctorName: 'Bhavani',  city: 'Trichy', phone: '0431-2456063', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C064', clinicName: 'Dr.Krishna Family Care',    doctorName: 'Krishna',  city: 'Trichy', phone: '0431-2456064', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C065', clinicName: 'Dharani Wellness Centre',   doctorName: 'Dharani',  city: 'Trichy', phone: '0431-2456065', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C066', clinicName: 'Dr.Elango Health Clinic',   doctorName: 'Elango',   city: 'Trichy', phone: '0431-2456066', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C067', clinicName: 'Gayathri Care Centre',      doctorName: 'Gayathri', city: 'Trichy', phone: '0431-2456067', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C068', clinicName: 'Dr.Hari Medical Care',      doctorName: 'Hari',     city: 'Trichy', phone: '0431-2456068', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C069', clinicName: 'Ishwar LifeCare Clinic',    doctorName: 'Ishwar',   city: 'Trichy', phone: '0431-2456069', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+];
 
 const DEFAULT_PASSWORD = 'sr1011';
 const defaultHash = bcrypt.hashSync(DEFAULT_PASSWORD, 10);
@@ -40,9 +135,17 @@ const defaultHash = bcrypt.hashSync(DEFAULT_PASSWORD, 10);
 const INITIAL_USERS = [
   { _id: 'u_super1', name:'Santhosh',    email:'santhosh@gmail.com',     passwordHash: defaultHash, role:'SUPER_ADMIN', clinicId: null },
   { _id: 'u_super2', name:'Super Admin', email:'superadmin@clinic.com',  passwordHash: defaultHash, role:'SUPER_ADMIN', clinicId: null },
+  ...INITIAL_CLINICS.map((c) => ({
+    _id: `u_${c.clinicId}`,
+    name: c.doctorName,
+    email: generateClinicEmail(c.clinicName, c.clinicId),
+    passwordHash: defaultHash,
+    role: 'CLINIC_ADMIN',
+    clinicId: c.clinicId
+  }))
 ];
 
-let inMemoryClinics = [];
+let inMemoryClinics = JSON.parse(JSON.stringify(INITIAL_CLINICS));
 let inMemoryTokens  = [];
 let inMemoryUsers   = JSON.parse(JSON.stringify(INITIAL_USERS));
 
@@ -52,12 +155,16 @@ const clinicSchema = new mongoose.Schema({
   clinicId:    { type: String, required: true, unique: true, uppercase: true, trim: true },
   clinicName:  { type: String, required: true, trim: true },
   doctorName:  { type: String, required: true, trim: true },
+  city:        { type: String, default: 'Chennai', trim: true },
+  email:       { type: String, required: true, unique: true, lowercase: true, trim: true },
+  passwordHash:{ type: String, required: true },
   phone:       { type: String, default: '' },
   address:     { type: String, default: '' },
   status:      { type: String, enum: ['Open','Closed'], default: 'Open' },
   featured:    { type: Boolean, default: false },
   currentToken:{ type: Number, default: 0 },
-  createdAt:   { type: Date, default: Date.now }
+  createdAt:   { type: Date, default: Date.now },
+  updatedAt:   { type: Date, default: Date.now }
 });
 
 const userSchema = new mongoose.Schema({
@@ -120,23 +227,116 @@ app.use(async (req, res, next) => {
 async function seedMongoData() {
   try {
     const hash = await bcrypt.hash('sr1011', 10);
-    
-    // Super Admins
+
+    // ── Validate the 50/50 Dr. split in INITIAL_CLINICS at startup ────────────
+    const drCount    = INITIAL_CLINICS.filter(c => c.clinicName.startsWith('Dr.')).length;
+    const nonDrCount = INITIAL_CLINICS.length - drCount;
+    if (drCount !== 30 || nonDrCount !== 30) {
+      console.error(
+        `❌ Dr. split validation FAILED: ${drCount} Dr. clinics, ${nonDrCount} non-Dr. clinics` +
+        ` (expected 30 each out of ${INITIAL_CLINICS.length} total)`
+      );
+    } else {
+      console.log(
+        `✅ Dr. split validated: ${drCount} Dr. + ${nonDrCount} non-Dr. = ${INITIAL_CLINICS.length} total clinics`
+      );
+    }
+
+    // ── Upsert all 60 clinics (safe to run even if DB already has data) ───────
+    // Using upsert-by-clinicId means:
+    //  - New DB → all 60 are inserted
+    //  - Existing DB with stale data → clinic names / emails are corrected in-place
+    //  - Existing DB already correct → no-op (MongoDB only updates if values differ)
+    let upserted = 0;
+    for (const clinic of INITIAL_CLINICS) {
+      const email = generateClinicEmail(clinic.clinicName, clinic.clinicId);
+      const result = await Clinic.findOneAndUpdate(
+        { clinicId: clinic.clinicId },
+        {
+          $set: {
+            clinicName:   clinic.clinicName,
+            doctorName:   clinic.doctorName,
+            city:         clinic.city,
+            phone:        clinic.phone,
+            address:      clinic.address,
+            email,
+            passwordHash: hash,
+            featured:     clinic.featured,
+            updatedAt:    new Date()
+          },
+          $setOnInsert: {
+            status:       clinic.status,
+            currentToken: 0,
+            createdAt:    new Date()
+          }
+        },
+        { upsert: true, returnDocument: 'before' }   // 'before' → returns pre-update doc (null if inserted)
+      );
+      if (!result) upserted++;   // null means it was an insert
+
+      // Mirror the clinic admin user
+      await User.findOneAndUpdate(
+        { clinicId: clinic.clinicId },
+        { $set: { name: clinic.doctorName, email, password: hash, role: 'CLINIC_ADMIN', clinicId: clinic.clinicId } },
+        { upsert: true }
+      );
+    }
+
+    if (upserted > 0) {
+      console.log(`🏥 Seeded ${upserted} new clinic(s) into MongoDB Atlas (${INITIAL_CLINICS.length - upserted} already existed)`);
+    } else {
+      console.log(`🏥 All ${INITIAL_CLINICS.length} clinics already present in MongoDB Atlas — verified`);
+    }
+
+    // ── Super Admins (always upsert) ──────────────────────────────────────────
     await User.findOneAndUpdate(
       { email: 'santhosh@gmail.com' },
       { $set: { name: 'Santhosh', email: 'santhosh@gmail.com', password: hash, role: 'SUPER_ADMIN', clinicId: null } },
-      { upsert: true, returnDocument: 'after' }
+      { upsert: true }
     );
     await User.findOneAndUpdate(
       { email: 'superadmin@clinic.com' },
       { $set: { name: 'Super Admin', email: 'superadmin@clinic.com', password: hash, role: 'SUPER_ADMIN', clinicId: null } },
-      { upsert: true, returnDocument: 'after' }
+      { upsert: true }
     );
+    console.log('👤 Super Admin accounts verified in MongoDB Atlas');
 
-    console.log('👤 Verified/Seeded Super Admin users in MongoDB Atlas');
   } catch (e) {
     console.error('Seed error:', e.message);
   }
+}
+
+/**
+ * Returns the next available Clinic ID by finding the highest existing numeric
+ * ID and adding 1.  IDs are NEVER reused after deletion.
+ *
+ * Floor is C010 (i.e. we never go below C010 for initial seeding).
+ * After C069 the sequence continues: C070, C071, …
+ */
+export async function generateClinicId() {
+  // Start the floor at 9 so the very first ID is C010
+  let highestNum = 9;
+
+  // Primary source: MongoDB (authoritative)
+  if (isMongoConnected) {
+    try {
+      const docs = await Clinic.find({}, { clinicId: 1 }).lean();
+      for (const doc of docs) {
+        const num = parseInt(String(doc.clinicId || '').replace(/\D/g, ''), 10);
+        if (!isNaN(num) && num > highestNum) highestNum = num;
+      }
+    } catch (e) {
+      isMongoConnected = false;
+    }
+  }
+
+  // Fallback / supplement: in-memory store
+  for (const c of inMemoryClinics) {
+    const num = parseInt(String(c.clinicId || '').replace(/\D/g, ''), 10);
+    if (!isNaN(num) && num > highestNum) highestNum = num;
+  }
+
+  return 'C' + String(highestNum + 1).padStart(3, '0');
 }
 
 // ─── Resilient Data Access Helpers ───────────────────────────────────────────
@@ -434,51 +634,83 @@ app.get('/api/clinics', authMiddleware, requireSuperAdmin, async (req, res) => {
 // Create new clinic
 app.post('/api/clinics', authMiddleware, requireSuperAdmin, async (req, res) => {
   try {
-    const { clinicName, doctorName, phone, address, status, featured } = req.body;
-    let { adminName, adminEmail, adminPassword } = req.body;
+    const { clinicName, doctorName, city, phone, address, status, featured } = req.body;
+    let { adminName, adminPassword } = req.body;
 
     if (!clinicName || !doctorName)
       return res.status(400).json({ error: 'clinicName and doctorName are required' });
 
-    const all = await dbGetClinics();
-    let nextNum = all.length + 1;
-    const clinicId = 'C' + String(nextNum).padStart(3, '0');
+    // Always generate the ID server-side — never trust a client-supplied clinicId
+    const clinicId = await generateClinicId();
 
-    if (!adminName) adminName = doctorName;
-    if (!adminEmail) adminEmail = getClinicUsername(clinicName, clinicId);
+    // Always derive the email server-side from the canonical function
+    const adminEmail = generateClinicEmail(clinicName, clinicId);
+
+    if (!adminName)     adminName     = doctorName;
     if (!adminPassword) adminPassword = 'sr1011';
 
     const newClinic = {
       clinicId,
-      clinicName: clinicName.trim(),
-      doctorName: doctorName.trim(),
-      phone: phone || '',
-      address: address || '',
-      status: status || 'Open',
-      featured: featured || false,
+      clinicName:  clinicName.trim(),
+      doctorName:  doctorName.trim(),
+      city:        (city || 'Chennai').trim(),
+      phone:       phone   || '',
+      address:     address || '',
+      status:      status  || 'Open',
+      featured:    featured || false,
       currentToken: 0,
-      createdAt: new Date()
+      createdAt:   new Date(),
+      updatedAt:   new Date()
     };
 
     if (isMongoConnected) {
       try {
         const hash = await bcrypt.hash(adminPassword, 10);
-        await Clinic.create(newClinic);
-        await User.create({ name: adminName, email: adminEmail.toLowerCase(), password: hash, role: 'CLINIC_ADMIN', clinicId });
-      } catch (e) { isMongoConnected = false; }
+        const clinicDoc = await Clinic.create({ ...newClinic, email: adminEmail, passwordHash: hash });
+        await User.create({
+          name:     adminName,
+          email:    adminEmail,
+          password: hash,
+          role:     'CLINIC_ADMIN',
+          clinicId
+        });
+        // Also push to in-memory so we stay in sync
+        inMemoryClinics.push({ ...newClinic, email: adminEmail, passwordHash: hash });
+        inMemoryUsers.push({
+          _id: 'u_' + Date.now(),
+          name:         adminName,
+          email:        adminEmail,
+          passwordHash: hash,
+          role:         'CLINIC_ADMIN',
+          clinicId
+        });
+        return res.status(201).json({
+          clinic:  clinicDoc.toObject(),
+          message: `Clinic ${clinicId} created — admin login: ${adminEmail}`
+        });
+      } catch (e) {
+        isMongoConnected = false;
+        // Fall through to in-memory path
+      }
     }
 
-    inMemoryClinics.push(newClinic);
+    // In-memory path
+    const hash = bcrypt.hashSync(adminPassword, 10);
+    const memClinic = { ...newClinic, email: adminEmail, passwordHash: hash };
+    inMemoryClinics.push(memClinic);
     inMemoryUsers.push({
-      _id: 'u_' + Date.now(),
-      name: adminName,
-      email: adminEmail.toLowerCase(),
-      passwordHash: bcrypt.hashSync(adminPassword, 10),
-      role: 'CLINIC_ADMIN',
+      _id:          'u_' + Date.now(),
+      name:         adminName,
+      email:        adminEmail,
+      passwordHash: hash,
+      role:         'CLINIC_ADMIN',
       clinicId
     });
 
-    res.status(201).json({ clinic: newClinic, message: `Clinic ${clinicId} created with admin ${adminEmail}` });
+    res.status(201).json({
+      clinic:  memClinic,
+      message: `Clinic ${clinicId} created — admin login: ${adminEmail}`
+    });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -600,7 +832,7 @@ app.post('/api/clinics/:clinicId/next', authMiddleware, requireClinicAccess, asy
     if (isMongoConnected) {
       try {
         await Token.findOneAndUpdate({ clinicId: cid, status: 'Serving' }, { $set: { status: 'Completed', completedAt: new Date() } });
-        const next = await Token.findOneAndUpdate({ clinicId: cid, status: 'Waiting' }, { $set: { status: 'Serving' } }, { sort: { tokenNumber: 1 }, new: true });
+        const next = await Token.findOneAndUpdate({ clinicId: cid, status: 'Waiting' }, { $set: { status: 'Serving' } }, { sort: { tokenNumber: 1 }, returnDocument: 'after' });
         clinic.currentToken = next ? next.tokenNumber : 0;
         await clinic.save();
         await emitClinicUpdate(cid);
@@ -655,6 +887,15 @@ app.get('/api/admin/summary', authMiddleware, requireSuperAdmin, async (req, res
     const closedClinics = clinics.filter(c => c.status === 'Closed').length;
     const featuredCount = clinics.filter(c => c.featured).length;
     res.json({ totalClinics, openClinics, closedClinics, featuredCount, totalWaiting: 0, totalCompleted: 0 });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Generate next Clinic ID — used by the frontend form so it always shows the
+// correct upcoming ID without trying to compute it client-side.
+app.get('/api/admin/generate-id', authMiddleware, requireSuperAdmin, async (req, res) => {
+  try {
+    const nextId = await generateClinicId();
+    res.json({ clinicId: nextId });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

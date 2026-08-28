@@ -100,6 +100,11 @@ export async function fetchAdminSummary(token: string) {
   return handle(await fetch(`${BASE}/api/admin/summary`, { headers: headers(token) }));
 }
 
+export async function fetchNextClinicId(token: string): Promise<string> {
+  const data = await handle(await fetch(`${BASE}/api/admin/generate-id`, { headers: headers(token) }));
+  return data.clinicId as string;
+}
+
 export async function fetchClinicStats(clinicId: string, token: string) {
   return handle(await fetch(`${BASE}/api/clinics/${clinicId}/stats`, { headers: headers(token) }));
 }

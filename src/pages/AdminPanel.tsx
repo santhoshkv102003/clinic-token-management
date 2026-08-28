@@ -14,26 +14,32 @@ import {
 } from "lucide-react";
 import {
   fetchClinics, fetchAdminSummary, createClinic, updateClinic,
-  deleteClinic, callNextPatient, resetClinicQueue, setFeatured
+  deleteClinic, callNextPatient, resetClinicQueue, setFeatured,
+  fetchNextClinicId
 } from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 
 type FormState = {
-  clinicName: string; doctorName: string; phone: string; address: string; status: string;
+  clinicName: string; doctorName: string; city: string; phone: string; address: string; status: string;
   adminName: string; adminEmail: string; adminPassword: string;
 };
 
 const EMPTY_FORM: FormState = {
-  clinicName:'', doctorName:'', phone:'', address:'', status:'Open',
+  clinicName:'', doctorName:'', city:'Chennai', phone:'', address:'', status:'Open',
   adminName:'', adminEmail:'', adminPassword:''
 };
 
-export function computeDefaultEmail(clinicName: string, clinicId: string) {
-  let cleanName = (clinicName || '').replace(/^(Dr\.|Dr|Doctor|The)\s*/i, '').trim();
-  cleanName = cleanName.replace(/^[^a-zA-Z0-9]+/, '');
-  const firstChar = (cleanName.charAt(0) || 'c').toLowerCase();
-  const cid = (clinicId || '').toLowerCase();
-  return `${firstChar}${cid}@gmail.com`;
+/**
+ * Mirrors backend generateClinicEmail exactly.
+ * Strip "Dr."/"Dr"/"Doctor", take first letter of first word + numeric ID.
+ * e.g. "Maambalam Health Centre" + "C014" → "m014@gmail.com"
+ *      "Dr.Karthi Prime Clinic"  + "C011" → "k011@gmail.com"
+ */
+export function computeDefaultEmail(clinicName: string, clinicId: string): string {
+  const numericId = (clinicId || '').replace(/\D/g, '');
+  const name = (clinicName || '').replace(/^(Dr\.|Dr|Doctor)\s*/i, '').trim();
+  const firstLetter = (name.charAt(0) || 'c').toLowerCase();
+  return `${firstLetter}${numericId}@gmail.com`;
 }
 
 export default function AdminPanel() {
@@ -52,6 +58,8 @@ export default function AdminPanel() {
   const [busy,         setBusy]         = useState(false);
   const [searchTerm,   setSearchTerm]   = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "Open" | "Closed">("ALL");
+  // nextClinicId comes from the backend — never computed client-side
+  const [nextClinicId, setNextClinicId] = useState<string>('C070');
 
   useEffect(() => { load(); }, []);
 
@@ -59,13 +67,17 @@ export default function AdminPanel() {
     if (!token) return;
     try {
       setLoading(true);
-      const [sum, list] = await Promise.all([fetchAdminSummary(token), fetchClinics(token)]);
-      setSummary(sum); setClinics(list);
+      const [sum, list, nextId] = await Promise.all([
+        fetchAdminSummary(token),
+        fetchClinics(token),
+        fetchNextClinicId(token)
+      ]);
+      setSummary(sum);
+      setClinics(list);
+      setNextClinicId(nextId);
     } catch (e: any) { toast({ title: e.message, variant: 'destructive' }); }
     finally { setLoading(false); }
   };
-
-  const nextClinicId = 'C' + String(clinics.length + 1).padStart(3, '0');
 
   const resetForm = () => { setForm(EMPTY_FORM); setEditId(null); setShowForm(false); };
 
@@ -101,7 +113,14 @@ export default function AdminPanel() {
       }
       setBusy(true);
       try {
-        await updateClinic(editId, { clinicName: form.clinicName, doctorName: form.doctorName, phone: form.phone, address: form.address, status: form.status }, token!);
+        await updateClinic(editId, {
+          clinicName: form.clinicName,
+          doctorName: form.doctorName,
+          city:       form.city,
+          phone:      form.phone,
+          address:    form.address,
+          status:     form.status
+        }, token!);
         toast({ title: 'Clinic updated ✅' }); resetForm(); load();
       } catch (e: any) { toast({ title: e.message, variant: 'destructive' }); }
       finally { setBusy(false); }
@@ -111,21 +130,30 @@ export default function AdminPanel() {
       }
       setBusy(true);
       try {
+        // Only send the fields the backend needs — clinicId and email are generated server-side
         const payload = {
-          ...form,
-          adminEmail: form.adminEmail || computeDefaultEmail(form.clinicName, nextClinicId),
-          adminName: form.adminName || form.doctorName,
+          clinicName:    form.clinicName,
+          doctorName:    form.doctorName,
+          city:          form.city || 'Chennai',
+          phone:         form.phone,
+          address:       form.address,
+          status:        form.status,
+          adminName:     form.adminName || form.doctorName,
           adminPassword: form.adminPassword || 'sr1011'
+          // adminEmail intentionally omitted — always generated server-side
         };
-        await createClinic(payload, token!);
-        toast({ title: `Clinic ${nextClinicId} + Admin created ✅` }); resetForm(); load();
+        const result = await createClinic(payload, token!);
+        const createdId = result?.clinic?.clinicId || nextClinicId;
+        toast({ title: `Clinic ${createdId} + Admin created ✅` });
+        resetForm();
+        load();
       } catch (e: any) { toast({ title: e.message, variant: 'destructive' }); }
       finally { setBusy(false); }
     }
   };
 
   const handleEdit = (c: any) => {
-    setForm({ ...EMPTY_FORM, clinicName: c.clinicName, doctorName: c.doctorName, phone: c.phone||'', address: c.address||'', status: c.status });
+    setForm({ ...EMPTY_FORM, clinicName: c.clinicName, doctorName: c.doctorName, city: c.city || 'Chennai', phone: c.phone||'', address: c.address||'', status: c.status });
     setEditId(c.clinicId); setShowForm(true);
     window.scrollTo({ top: 150, behavior: 'smooth' });
   };
