@@ -189,46 +189,51 @@ export default function Home() {
       }}
     >
       {/* ── Header ── */}
-      <header className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setSearch(""); setIsSearchFocused(false); }}>
-            <div className="w-10 h-10 bg-[#00a6d6]/15 rounded-xl flex items-center justify-center shadow-inner">
-              <Heart className="w-6 h-6 text-[#00a6d6]" />
+      <header className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm w-full overflow-hidden">
+        <div className="container mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 cursor-pointer shrink-0" onClick={() => { setSearch(""); setIsSearchFocused(false); }}>
+            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[#00a6d6]/15 rounded-xl flex items-center justify-center shadow-inner shrink-0">
+              <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-[#00a6d6]" />
             </div>
             <div>
-              <h1 className="text-xl font-black text-slate-800 leading-tight">ClinicQueue</h1>
-              <p className="text-xs text-slate-500 font-medium">Smart Token Management</p>
+              <h1 className="text-lg sm:text-xl font-black text-slate-800 leading-tight">ClinicQueue</h1>
+              <p className="hidden sm:block text-xs text-slate-500 font-medium">Smart Token Management</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {user ? (
               <>
                 {isSuperAdmin && (
                   <Button
                     onClick={() => setShowAddClinicModal(true)}
-                    className="bg-[#00a6d6] hover:bg-[#0092bd] text-white shadow-md text-xs sm:text-sm font-semibold rounded-xl"
+                    className="bg-[#00a6d6] hover:bg-[#0092bd] text-white shadow-md text-xs sm:text-sm font-semibold rounded-xl px-2.5 sm:px-3"
                     size="sm"
                   >
-                    <Plus className="w-4 h-4 mr-1.5" /> Add Clinic
+                    <Plus className="w-4 h-4 sm:mr-1.5" />
+                    <span className="hidden sm:inline">Add Clinic</span>
+                    <span className="sm:hidden">Add</span>
                   </Button>
                 )}
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => navigate(user.role === "SUPER_ADMIN" ? "/admin/dashboard" : "/admin/clinic")}
-                  className="bg-white/80 rounded-xl text-xs sm:text-sm font-semibold"
+                  className="bg-white/80 rounded-xl text-xs sm:text-sm font-semibold px-2.5 sm:px-3"
                 >
-                  <Shield className="w-4 h-4 mr-1.5 text-[#00a6d6]" />
-                  {user.role === "SUPER_ADMIN" ? "Dashboard" : "My Clinic"}
+                  <Shield className="w-4 h-4 text-[#00a6d6] sm:mr-1.5" />
+                  <span className="hidden sm:inline">{user.role === "SUPER_ADMIN" ? "Dashboard" : "My Clinic"}</span>
+                  <span className="sm:hidden">{user.role === "SUPER_ADMIN" ? "Dash" : "Clinic"}</span>
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => { logout(); toast({ title: "Logged out" }); }}
-                  className="text-slate-600 hover:text-slate-900 rounded-xl text-xs sm:text-sm font-semibold"
+                  className="text-slate-600 hover:text-slate-900 rounded-xl text-xs sm:text-sm font-semibold px-2 sm:px-3"
+                  title="Logout"
                 >
-                  <LogOut className="w-4 h-4 mr-1" /> Logout
+                  <LogOut className="w-4 h-4 sm:mr-1" />
+                  <span className="hidden sm:inline">Logout</span>
                 </Button>
               </>
             ) : (
@@ -236,7 +241,7 @@ export default function Home() {
                 variant="outline"
                 size="sm"
                 onClick={() => setShowAdminLoginModal(true)}
-                className="bg-white/90 hover:bg-white text-slate-800 rounded-xl shadow-sm border border-slate-200 text-xs sm:text-sm font-bold px-4 py-2"
+                className="bg-white/90 hover:bg-white text-slate-800 rounded-xl shadow-sm border border-slate-200 text-xs sm:text-sm font-bold px-3 sm:px-4 py-2"
               >
                 <Shield className="w-4 h-4 mr-1.5 text-[#00a6d6]" />
                 Admin Login
@@ -246,43 +251,43 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8 max-w-5xl flex-1">
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-5xl flex-1 w-full overflow-x-hidden">
         {/* ── 3 Summary Stat Cards ── */}
-        <div className="grid grid-cols-3 gap-3.5 mb-8 max-w-lg mx-auto">
-          <div className="text-center p-4 bg-[#e6f4f8]/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-md transition hover:-translate-y-0.5">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3.5 mb-6 sm:mb-8 max-w-lg mx-auto">
+          <div className="text-center p-3 sm:p-4 bg-[#e6f4f8]/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-md transition hover:-translate-y-0.5">
             <div className="flex items-center justify-center mb-1 text-[#00a6d6]">
-              <Building2 className="w-5 h-5" />
+              <Building2 className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             {loading ? (
               <div className="h-7 w-10 bg-slate-200 rounded animate-pulse mx-auto mb-1" />
             ) : (
-              <div className="text-3xl font-extrabold text-[#00a6d6]">{summary.totalClinics}</div>
+              <div className="text-2xl sm:text-3xl font-extrabold text-[#00a6d6]">{summary.totalClinics}</div>
             )}
-            <div className="text-xs text-slate-600 font-bold mt-0.5">Total Clinics</div>
+            <div className="text-[11px] sm:text-xs text-slate-600 font-bold mt-0.5 leading-tight">Total Clinics</div>
           </div>
 
-          <div className="text-center p-4 bg-[#e6f4f8]/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-md transition hover:-translate-y-0.5">
+          <div className="text-center p-3 sm:p-4 bg-[#e6f4f8]/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-md transition hover:-translate-y-0.5">
             <div className="flex items-center justify-center mb-1 text-[#0d9488]">
-              <DoorOpen className="w-5 h-5" />
+              <DoorOpen className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             {loading ? (
               <div className="h-7 w-10 bg-slate-200 rounded animate-pulse mx-auto mb-1" />
             ) : (
-              <div className="text-3xl font-extrabold text-[#0d9488]">{summary.openClinics}</div>
+              <div className="text-2xl sm:text-3xl font-extrabold text-[#0d9488]">{summary.openClinics}</div>
             )}
-            <div className="text-xs text-slate-600 font-bold mt-0.5">Open Now</div>
+            <div className="text-[11px] sm:text-xs text-slate-600 font-bold mt-0.5 leading-tight">Open Now</div>
           </div>
 
-          <div className="text-center p-4 bg-[#e6f4f8]/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-md transition hover:-translate-y-0.5">
+          <div className="text-center p-3 sm:p-4 bg-[#e6f4f8]/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-md transition hover:-translate-y-0.5">
             <div className="flex items-center justify-center mb-1 text-[#ef4444]">
-              <DoorClosed className="w-5 h-5" />
+              <DoorClosed className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             {loading ? (
               <div className="h-7 w-10 bg-slate-200 rounded animate-pulse mx-auto mb-1" />
             ) : (
-              <div className="text-3xl font-extrabold text-[#ef4444]">{summary.closedClinics}</div>
+              <div className="text-2xl sm:text-3xl font-extrabold text-[#ef4444]">{summary.closedClinics}</div>
             )}
-            <div className="text-xs text-slate-600 font-bold mt-0.5">Closed</div>
+            <div className="text-[11px] sm:text-xs text-slate-600 font-bold mt-0.5 leading-tight">Closed</div>
           </div>
         </div>
 
