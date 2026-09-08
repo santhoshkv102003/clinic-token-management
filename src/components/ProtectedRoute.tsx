@@ -20,13 +20,17 @@ export function ProtectedRoute({ children, role = 'ANY' }: Props) {
     );
   }
 
-  if (!user) return <Navigate to="/admin/login" replace />;
+  if (!user) {
+    if (role === 'SUPER_ADMIN') return <Navigate to="/admin/super/login" replace />;
+    if (role === 'CLINIC_ADMIN') return <Navigate to="/admin/clinic/login" replace />;
+    return <Navigate to="/admin" replace />;
+  }
 
   if (role === 'SUPER_ADMIN' && user.role !== 'SUPER_ADMIN')
-    return <Navigate to="/admin/dashboard" replace />;
+    return <Navigate to="/admin/clinic/dashboard" replace />;
 
   if (role === 'CLINIC_ADMIN' && user.role !== 'CLINIC_ADMIN')
-    return <Navigate to="/admin/dashboard" replace />;
+    return <Navigate to="/admin/super/dashboard" replace />;
 
   return <>{children}</>;
 }

@@ -15,7 +15,7 @@ import {
 import {
   fetchClinics, fetchAdminSummary, createClinic, updateClinic,
   deleteClinic, callNextPatient, resetClinicQueue, setFeatured,
-  fetchNextClinicId
+  fetchNextClinicId, toggleClinicActive
 } from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 
@@ -195,6 +195,21 @@ export default function AdminPanel() {
   const handleToggleStatus = async (clinicId: string, current: string) => {
     try { await updateClinic(clinicId, { status: current==='Open'?'Closed':'Open' }, token!); load(); }
     catch (e: any) { toast({ title: e.message, variant: 'destructive' }); }
+  };
+
+  const handleToggleActive = async (clinicId: string, currentActive: boolean) => {
+    if (!token) return;
+    try {
+      const nextActive = !currentActive;
+      await toggleClinicActive(clinicId, nextActive, token!);
+      toast({
+        title: nextActive ? "🟢 Clinic Activated" : "🔴 Clinic Deactivated",
+        description: nextActive ? "Clinic is now active and visible" : "Clinic is deactivated and hidden",
+      });
+      load();
+    } catch (e: any) {
+      toast({ title: e.message || "Failed to update active state", variant: "destructive" });
+    }
   };
 
   // Filter clinics by search query and status
@@ -513,16 +528,29 @@ export default function AdminPanel() {
                           </div>
                         )}
                       </div>
-                      <Badge
-                        variant={isOpen ? 'default' : 'secondary'}
-                        className={`cursor-pointer text-xs font-semibold transition-colors ${
-                          isOpen ? 'bg-emerald-100 text-emerald-700 border-emerald-300 hover:bg-emerald-200' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-                        }`}
-                        onClick={() => handleToggleStatus(c.clinicId, c.status)}
-                        title="Click to toggle Open/Closed status"
-                      >
-                        {c.status}
-                      </Badge>
+                      <div className="flex flex-col items-end gap-1">
+                        <Badge
+                          variant={isOpen ? 'default' : 'secondary'}
+                          className={`cursor-pointer text-xs font-semibold transition-colors ${
+                            isOpen ? 'bg-emerald-100 text-emerald-700 border-emerald-300 hover:bg-emerald-200' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                          }`}
+                          onClick={() => handleToggleStatus(c.clinicId, c.status)}
+                          title="Click to toggle Open/Closed status"
+                        >
+                          {c.status}
+                        </Badge>
+                        <button
+                          onClick={() => handleToggleActive(c.clinicId, c.isActive !== false)}
+                          className={`text-[10px] font-bold px-1.5 py-0.5 rounded transition ${
+                            c.isActive !== false
+                              ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                              : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
+                          }`}
+                          title={c.isActive !== false ? 'Click to Deactivate' : 'Click to Activate'}
+                        >
+                          {c.isActive !== false ? 'Active' : 'Inactive'}
+                        </button>
+                      </div>
                     </div>
                   </CardHeader>
 

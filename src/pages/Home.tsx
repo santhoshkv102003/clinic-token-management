@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Heart, Search, Shield, RefreshCw, X, Building2, DoorOpen,
-  DoorClosed, Plus, LogIn, LogOut, Stethoscope, ArrowRight, Check
+  DoorClosed, Plus, LogIn, LogOut, Stethoscope, ArrowRight, ArrowLeft, Check
 } from "lucide-react";
 import { fetchHomeSummary, fetchTop3Clinics, searchClinics, createClinic } from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
@@ -202,51 +202,15 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {user ? (
-              <>
-                {isSuperAdmin && (
-                  <Button
-                    onClick={() => setShowAddClinicModal(true)}
-                    className="bg-[#00a6d6] hover:bg-[#0092bd] text-white shadow-md text-xs sm:text-sm font-semibold rounded-xl px-2.5 sm:px-3"
-                    size="sm"
-                  >
-                    <Plus className="w-4 h-4 sm:mr-1.5" />
-                    <span className="hidden sm:inline">Add Clinic</span>
-                    <span className="sm:hidden">Add</span>
-                  </Button>
-                )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate(user.role === "SUPER_ADMIN" ? "/admin/dashboard" : "/admin/clinic")}
-                  className="bg-white/80 rounded-xl text-xs sm:text-sm font-semibold px-2.5 sm:px-3"
-                >
-                  <Shield className="w-4 h-4 text-[#00a6d6] sm:mr-1.5" />
-                  <span className="hidden sm:inline">{user.role === "SUPER_ADMIN" ? "Dashboard" : "My Clinic"}</span>
-                  <span className="sm:hidden">{user.role === "SUPER_ADMIN" ? "Dash" : "Clinic"}</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => { logout(); toast({ title: "Logged out" }); }}
-                  className="text-slate-600 hover:text-slate-900 rounded-xl text-xs sm:text-sm font-semibold px-2 sm:px-3"
-                  title="Logout"
-                >
-                  <LogOut className="w-4 h-4 sm:mr-1" />
-                  <span className="hidden sm:inline">Logout</span>
-                </Button>
-              </>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowAdminLoginModal(true)}
-                className="bg-white/90 hover:bg-white text-slate-800 rounded-xl shadow-sm border border-slate-200 text-xs sm:text-sm font-bold px-3 sm:px-4 py-2"
-              >
-                <Shield className="w-4 h-4 mr-1.5 text-[#00a6d6]" />
-                Admin Login
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/")}
+              className="bg-white/90 hover:bg-white text-slate-800 rounded-xl shadow-sm border border-slate-200 text-xs sm:text-sm font-bold px-3 sm:px-4 py-2"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1.5 text-[#00a6d6]" />
+              Portal Selection
+            </Button>
           </div>
         </div>
       </header>
@@ -433,15 +397,7 @@ export default function Home() {
           <div className="text-center py-16 bg-white/60 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm max-w-md mx-auto">
             <Search className="w-12 h-12 mx-auto mb-3 text-slate-400" />
             <p className="text-slate-800 text-lg font-bold">No clinics found for "{search}"</p>
-            <p className="text-slate-500 text-sm mt-1">Try another letter or name.</p>
-            {isSuperAdmin && (
-              <Button
-                onClick={() => { setClinicName(search); setShowAddClinicModal(true); }}
-                className="mt-4 bg-[#00a6d6] hover:bg-[#0092bd] text-white rounded-xl"
-              >
-                <Plus className="w-4 h-4 mr-1.5" /> Add "{search}" as a new clinic
-              </Button>
-            )}
+            <p className="text-slate-500 text-sm mt-1">Try searching another clinic or doctor name.</p>
           </div>
         )}
       </div>

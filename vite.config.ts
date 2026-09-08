@@ -19,11 +19,21 @@ export default defineConfig(({ mode }) => ({
       '/api': {
         target: 'http://127.0.0.1:3000',
         changeOrigin: true,
+        configure: (proxy) => {
+          proxy.on('error', (_err, _req, _res) => {
+            // Ignore temporary startup connection error while backend initializes
+          });
+        },
       },
       '/socket.io': {
         target: 'http://127.0.0.1:3000',
         changeOrigin: true,
         ws: true,
+        configure: (proxy) => {
+          proxy.on('error', (_err, _req, _res) => {
+            // Ignore temporary startup connection error while backend initializes
+          });
+        },
       },
     },
   },

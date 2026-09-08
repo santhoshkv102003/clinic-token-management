@@ -161,6 +161,7 @@ const clinicSchema = new mongoose.Schema({
   phone:       { type: String, default: '' },
   address:     { type: String, default: '' },
   status:      { type: String, enum: ['Open','Closed'], default: 'Open' },
+  isActive:    { type: Boolean, default: true },
   featured:    { type: Boolean, default: false },
   currentToken:{ type: Number, default: 0 },
   createdAt:   { type: Date, default: Date.now },
@@ -181,8 +182,8 @@ const tokenSchema = new mongoose.Schema({
   name:        { type: String, required: true, trim: true },
   phone:       { type: String, required: true, trim: true },
   age:         { type: Number },
-  department:  { type: String, trim: true },
-  status:      { type: String, enum: ['Waiting','Serving','Completed'], default: 'Waiting' },
+  department:  { type: String, trim: true, default: 'General Medicine' },
+  status:      { type: String, enum: ['waiting', 'serving', 'completed', 'cancelled', 'no_show', 'Waiting', 'Serving', 'Completed'], default: 'waiting' },
   bookedAt:    { type: Date, default: Date.now },
   completedAt: { type: Date }
 });
@@ -377,11 +378,13 @@ async function dbGetTokens(clinicId) {
 
 async function dbCreateToken(data) {
   const cid = data.clinicId.toUpperCase();
+  const dept = (data.department || 'General Medicine').trim();
+  const tokenStatus = (data.status || 'waiting').toLowerCase();
   if (isMongoConnected) {
     try {
       const last = await Token.findOne({ clinicId: cid }).sort({ tokenNumber: -1 });
       const number = last ? last.tokenNumber + 1 : 1;
-      return await Token.create({ ...data, clinicId: cid, tokenNumber: number });
+      return await Token.create({ ...data, clinicId: cid, department: dept, tokenNumber: number, status: tokenStatus });
     } catch (e) { isMongoConnected = false; }
   }
   const clinicTokens = inMemoryTokens.filter(t => t.clinicId === cid);
@@ -390,8 +393,9 @@ async function dbCreateToken(data) {
     _id: 't_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
     ...data,
     clinicId: cid,
+    department: dept,
     tokenNumber: number,
-    status: 'Waiting',
+    status: tokenStatus,
     bookedAt: new Date()
   };
   inMemoryTokens.push(newToken);
@@ -455,9 +459,9 @@ function requireSuperAdmin(req, res, next) {
 }
 
 function requireClinicAccess(req, res, next) {
-  const clinicId = (req.params.clinicId || req.body.clinicId || '').toUpperCase();
+  const clinicId = (req.params.clinicId || req.body?.clinicId || req.query?.clinicId || '').toUpperCase();
   if (req.user?.role === 'SUPER_ADMIN') return next();
-  if (req.user?.role === 'CLINIC_ADMIN' && req.user.clinicId === clinicId) return next();
+  if (req.user?.role === 'CLINIC_ADMIN' && req.user.clinicId && req.user.clinicId.toUpperCase() === clinicId) return next();
   return res.status(403).json({ error: 'Forbidden: You can only access your own clinic' });
 }
 
@@ -478,14 +482,19 @@ async function emitClinicUpdate(clinicId) {
 async function enrichClinic(c) {
   const obj = c.toObject ? c.toObject() : c;
   const tokens = await dbGetTokens(obj.clinicId);
-  const waiting = tokens.filter(t => t.status === 'Waiting').length;
-  const serving = tokens.filter(t => t.status === 'Serving').length;
-  const completed = tokens.filter(t => t.status === 'Completed').length;
+  const waiting = tokens.filter(t => ['waiting', 'Waiting'].includes(t.status)).length;
+  const serving = tokens.filter(t => ['serving', 'Serving'].includes(t.status)).length;
+  const completed = tokens.filter(t => ['completed', 'Completed'].includes(t.status)).length;
+  const cancelled = tokens.filter(t => ['cancelled'].includes(t.status)).length;
+  const noShow = tokens.filter(t => ['no_show'].includes(t.status)).length;
   return {
     ...obj,
+    isActive: obj.isActive !== false,
     waitingCount: waiting,
     servingCount: serving,
     completedCount: completed,
+    cancelledCount: cancelled,
+    noShowCount: noShow,
     estimatedWait: waiting * 5
   };
 }
@@ -564,14 +573,14 @@ app.get('/api/clinics/top3', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Search clinics (alphabetical order)
+// Search clinics (alphabetical order, active clinics only for patients)
 app.get('/api/clinics/search', async (req, res) => {
   try {
     const q = (req.query.q || '').trim().toLowerCase();
     const all = await dbGetClinics();
-    let filtered = all;
+    let filtered = all.filter(c => c.isActive !== false);
     if (q) {
-      filtered = all.filter(c =>
+      filtered = filtered.filter(c =>
         c.clinicName.toLowerCase().includes(q) ||
         c.doctorName.toLowerCase().includes(q) ||
         c.clinicId.toLowerCase().includes(q)
@@ -603,6 +612,47 @@ app.get('/api/clinics/:clinicId/queue', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// Get single token details for patient tracking
+app.get('/api/tokens/:tokenId', async (req, res) => {
+  try {
+    const { tokenId } = req.params;
+    let tokenDoc = null;
+    if (isMongoConnected) {
+      try {
+        if (mongoose.Types.ObjectId.isValid(tokenId)) {
+          tokenDoc = await Token.findById(tokenId);
+        } else {
+          tokenDoc = await Token.findOne({ _id: tokenId });
+        }
+      } catch (e) { isMongoConnected = false; }
+    }
+    if (!tokenDoc) {
+      tokenDoc = inMemoryTokens.find(t => String(t._id) === tokenId);
+    }
+    if (!tokenDoc) return res.status(404).json({ error: 'Token not found' });
+
+    const obj = tokenDoc.toObject ? tokenDoc.toObject() : tokenDoc;
+    const clinic = await dbGetClinic(obj.clinicId);
+    const allTokens = await dbGetTokens(obj.clinicId);
+
+    const dept = (obj.department || 'General Medicine').trim().toLowerCase();
+    const deptTokens = allTokens.filter(t => (t.department || 'General Medicine').trim().toLowerCase() === dept);
+
+    const servingTokenDoc = deptTokens.find(t => ['serving', 'Serving'].includes(t.status));
+    const servingToken = servingTokenDoc ? servingTokenDoc.tokenNumber : 0;
+    const waitingBefore = deptTokens.filter(t => ['waiting', 'Waiting'].includes(t.status) && t.tokenNumber < obj.tokenNumber).length;
+
+    res.json({
+      token: obj,
+      clinicName: clinic ? clinic.clinicName : obj.clinicId,
+      doctorName: clinic ? clinic.doctorName : '',
+      servingToken,
+      patientsAhead: waitingBefore,
+      estimatedWaitMinutes: waitingBefore * 5
+    });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // Book token
 app.post('/api/tokens', async (req, res) => {
   try {
@@ -612,11 +662,78 @@ app.post('/api/tokens', async (req, res) => {
     const cid = clinicId.toUpperCase();
     const clinic = await dbGetClinic(cid);
     if (!clinic) return res.status(404).json({ error: 'Clinic not found' });
-    if (clinic.status === 'Closed') return res.status(400).json({ error: 'Clinic is closed' });
+    if (clinic.status === 'Closed' || clinic.isActive === false)
+      return res.status(400).json({ error: 'Clinic is closed or inactive' });
 
-    const token = await dbCreateToken({ clinicId: cid, name, phone, age, department });
+    const dept = (department || 'General Medicine').trim();
+    const token = await dbCreateToken({
+      clinicId: cid,
+      name: name.trim(),
+      phone: phone.trim(),
+      age: age ? Number(age) : undefined,
+      department: dept,
+      status: 'waiting'
+    });
     await emitClinicUpdate(cid);
     res.status(201).json(token);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Update token status (waiting, serving, completed, cancelled, no_show)
+app.put('/api/tokens/:tokenId/status', authMiddleware, async (req, res) => {
+  try {
+    const { tokenId } = req.params;
+    const { status } = req.body;
+    const validStatuses = ['waiting', 'serving', 'completed', 'cancelled', 'no_show'];
+    const newStatus = (status || '').toLowerCase();
+    if (!validStatuses.includes(newStatus)) {
+      return res.status(400).json({ error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` });
+    }
+
+    let tokenDoc = null;
+    if (isMongoConnected) {
+      try {
+        if (mongoose.Types.ObjectId.isValid(tokenId)) {
+          tokenDoc = await Token.findById(tokenId);
+        } else {
+          tokenDoc = await Token.findOne({ _id: tokenId });
+        }
+      } catch (e) { isMongoConnected = false; }
+    }
+    if (!tokenDoc) {
+      tokenDoc = inMemoryTokens.find(t => String(t._id) === tokenId);
+    }
+    if (!tokenDoc) return res.status(404).json({ error: 'Token not found' });
+
+    const cid = tokenDoc.clinicId.toUpperCase();
+    if (req.user.role !== 'SUPER_ADMIN' && req.user.clinicId?.toUpperCase() !== cid) {
+      return res.status(403).json({ error: 'Forbidden: You can only manage tokens for your own clinic' });
+    }
+
+    const currentStatus = (tokenDoc.status || 'waiting').toLowerCase();
+    const allowedTransitions = {
+      'waiting': ['serving', 'cancelled', 'no_show'],
+      'serving': ['completed', 'cancelled', 'no_show'],
+      'completed': [],
+      'cancelled': [],
+      'no_show': []
+    };
+
+    if (currentStatus !== newStatus && !allowedTransitions[currentStatus]?.includes(newStatus)) {
+      return res.status(400).json({ error: `Invalid state transition from '${currentStatus}' to '${newStatus}'` });
+    }
+
+    if (isMongoConnected && tokenDoc.save) {
+      tokenDoc.status = newStatus;
+      if (newStatus === 'completed') tokenDoc.completedAt = new Date();
+      await tokenDoc.save();
+    } else {
+      tokenDoc.status = newStatus;
+      if (newStatus === 'completed') tokenDoc.completedAt = new Date();
+    }
+
+    await emitClinicUpdate(cid);
+    res.json(tokenDoc);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -718,13 +835,22 @@ app.post('/api/clinics', authMiddleware, requireSuperAdmin, async (req, res) => 
 app.put('/api/clinics/:clinicId', authMiddleware, requireClinicAccess, async (req, res) => {
   try {
     const cid = req.params.clinicId.toUpperCase();
-    const { clinicName, doctorName, phone, address, status, featured } = req.body;
+    const { clinicName, doctorName, phone, address, status, isActive, featured } = req.body;
+
+    const updates = {};
+    if (clinicName !== undefined) updates.clinicName = clinicName;
+    if (doctorName !== undefined) updates.doctorName = doctorName;
+    if (phone !== undefined) updates.phone = phone;
+    if (address !== undefined) updates.address = address;
+    if (status !== undefined) updates.status = status;
+    if (isActive !== undefined) updates.isActive = isActive;
+    if (featured !== undefined) updates.featured = featured;
 
     if (isMongoConnected) {
       try {
         await Clinic.findOneAndUpdate(
           { clinicId: cid },
-          { clinicName, doctorName, phone, address, status, featured },
+          { $set: updates },
           { new: true }
         );
       } catch (e) { isMongoConnected = false; }
@@ -736,12 +862,39 @@ app.put('/api/clinics/:clinicId', authMiddleware, requireClinicAccess, async (re
       if (doctorName) c.doctorName = doctorName;
       if (phone !== undefined) c.phone = phone;
       if (address !== undefined) c.address = address;
-      if (status) c.status = status;
+      if (status !== undefined) c.status = status;
+      if (isActive !== undefined) c.isActive = isActive;
       if (featured !== undefined) c.featured = featured;
     }
 
     await emitClinicUpdate(cid);
-    res.json(c || { clinicId: cid, status });
+    res.json(c || { clinicId: cid, ...updates });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Update clinic active/closed status
+app.put('/api/clinics/:clinicId/status', authMiddleware, requireClinicAccess, async (req, res) => {
+  try {
+    const cid = req.params.clinicId.toUpperCase();
+    const { status, isActive } = req.body;
+    const updates = {};
+    if (status !== undefined) updates.status = status;
+    if (isActive !== undefined) updates.isActive = isActive;
+
+    if (isMongoConnected) {
+      try {
+        await Clinic.findOneAndUpdate({ clinicId: cid }, { $set: updates }, { new: true });
+      } catch (e) { isMongoConnected = false; }
+    }
+
+    const c = inMemoryClinics.find(x => x.clinicId === cid);
+    if (c) {
+      if (status !== undefined) c.status = status;
+      if (isActive !== undefined) c.isActive = isActive;
+    }
+
+    await emitClinicUpdate(cid);
+    res.json(c || { clinicId: cid, ...updates });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -826,14 +979,30 @@ app.delete('/api/clinics/:clinicId', authMiddleware, requireSuperAdmin, async (r
 app.post('/api/clinics/:clinicId/next', authMiddleware, requireClinicAccess, async (req, res) => {
   try {
     const cid = req.params.clinicId.toUpperCase();
+    const { department } = req.body || {};
     const clinic = await dbGetClinic(cid);
     if (!clinic) return res.status(404).json({ error: 'Clinic not found' });
 
+    const deptFilter = department ? String(department).trim() : null;
+
     if (isMongoConnected) {
       try {
-        await Token.findOneAndUpdate({ clinicId: cid, status: 'Serving' }, { $set: { status: 'Completed', completedAt: new Date() } });
-        const next = await Token.findOneAndUpdate({ clinicId: cid, status: 'Waiting' }, { $set: { status: 'Serving' } }, { sort: { tokenNumber: 1 }, returnDocument: 'after' });
-        clinic.currentToken = next ? next.tokenNumber : 0;
+        const servingQuery = { clinicId: cid, status: { $in: ['Serving', 'serving'] } };
+        const waitingQuery = { clinicId: cid, status: { $in: ['Waiting', 'waiting'] } };
+        if (deptFilter) {
+          servingQuery.department = deptFilter;
+          waitingQuery.department = deptFilter;
+        }
+
+        await Token.findOneAndUpdate(servingQuery, { $set: { status: 'completed', completedAt: new Date() } });
+        const next = await Token.findOneAndUpdate(waitingQuery, { $set: { status: 'serving' } }, { sort: { tokenNumber: 1 }, returnDocument: 'after' });
+        if (next) {
+          clinic.currentToken = next.tokenNumber;
+        } else {
+          // If no waiting patients left, find the highest completed token number or keep currentToken
+          const highestToken = await Token.findOne({ clinicId: cid }).sort({ tokenNumber: -1 });
+          if (highestToken) clinic.currentToken = highestToken.tokenNumber;
+        }
         await clinic.save();
         await emitClinicUpdate(cid);
         return res.json({ currentToken: clinic.currentToken, next: next || null });
@@ -841,18 +1010,21 @@ app.post('/api/clinics/:clinicId/next', authMiddleware, requireClinicAccess, asy
     }
 
     // In-memory update
-    const servingToken = inMemoryTokens.find(t => t.clinicId === cid && t.status === 'Serving');
+    const servingToken = inMemoryTokens.find(t => t.clinicId === cid && (!deptFilter || t.department === deptFilter) && ['Serving', 'serving'].includes(t.status));
     if (servingToken) {
-      servingToken.status = 'Completed';
+      servingToken.status = 'completed';
       servingToken.completedAt = new Date();
     }
 
-    const nextToken = inMemoryTokens.find(t => t.clinicId === cid && t.status === 'Waiting');
+    const nextToken = inMemoryTokens.find(t => t.clinicId === cid && (!deptFilter || t.department === deptFilter) && ['Waiting', 'waiting'].includes(t.status));
     if (nextToken) {
-      nextToken.status = 'Serving';
+      nextToken.status = 'serving';
       clinic.currentToken = nextToken.tokenNumber;
     } else {
-      clinic.currentToken = 0;
+      const clinicTokens = inMemoryTokens.filter(t => t.clinicId === cid);
+      if (clinicTokens.length > 0) {
+        clinic.currentToken = Math.max(...clinicTokens.map(t => t.tokenNumber));
+      }
     }
 
     await emitClinicUpdate(cid);

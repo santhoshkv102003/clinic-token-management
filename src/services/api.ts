@@ -84,9 +84,25 @@ export async function setFeatured(clinicId: string, featured: boolean, token: st
   }));
 }
 
-export async function callNextPatient(clinicId: string, token: string) {
+export async function fetchTokenDetails(tokenId: string) {
+  return handle(await fetch(`${BASE}/api/tokens/${tokenId}`));
+}
+
+export async function updateTokenStatus(tokenId: string, status: string, token: string) {
+  return handle(await fetch(`${BASE}/api/tokens/${tokenId}/status`, {
+    method: 'PUT', headers: headers(token), body: JSON.stringify({ status })
+  }));
+}
+
+export async function toggleClinicActive(clinicId: string, isActive: boolean, token: string) {
+  return handle(await fetch(`${BASE}/api/clinics/${clinicId}/status`, {
+    method: 'PUT', headers: headers(token), body: JSON.stringify({ isActive })
+  }));
+}
+
+export async function callNextPatient(clinicId: string, token: string, department?: string) {
   return handle(await fetch(`${BASE}/api/clinics/${clinicId}/next`, {
-    method: 'POST', headers: headers(token)
+    method: 'POST', headers: headers(token), body: JSON.stringify({ department })
   }));
 }
 

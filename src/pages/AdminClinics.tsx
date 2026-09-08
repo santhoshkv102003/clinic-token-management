@@ -199,7 +199,7 @@ export default function AdminClinics() {
             onClick={() => { resetForm(); setShowForm(true); }}
           >
             <Plus className="w-4 h-4 mr-1" /> Add Clinic
-          </Button>
+          </Button> 
         </div>
       </header>
 

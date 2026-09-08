@@ -8,10 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Users, Clock, Home, RefreshCw, 
+  Users, Clock, Home, RefreshCw, RotateCcw,
   CheckCircle, Ticket, Phone, User, Search, AlertCircle
 } from "lucide-react";
-import { fetchClinicQueue, callNextPatient, bookToken as apiBookToken, updateClinic } from "@/services/api";
+import { fetchClinicQueue, callNextPatient, bookToken as apiBookToken, updateClinic, updateTokenStatus, resetClinicQueue } from "@/services/api";
 import { joinClinicRoom, leaveClinicRoom, onQueueUpdate } from "@/services/socket";
 import { useAuth } from "@/context/AuthContext";
 
@@ -82,10 +82,16 @@ export default function ClinicAdminDashboard() {
     }
   }, [clinicId, load]);
 
-  const waitingTokens = tokens.filter(t => t.status === "Waiting" || t.status === "Serving");
-  const completedTokens = tokens.filter(t => t.status === "Completed");
-  const currentServingNumber = clinic?.currentToken || 0;
-  const inQueueCount = tokens.filter(t => t.status === "Waiting").length;
+  const isWaitingOrServing = (s: string) => ['waiting', 'Waiting', 'serving', 'Serving'].includes(s || '');
+  const isWaiting = (s: string) => ['waiting', 'Waiting'].includes(s || '');
+  const isCompleted = (s: string) => ['completed', 'Completed'].includes(s || '');
+
+  const waitingTokens = tokens.filter(t => isWaitingOrServing(t.status));
+  const completedTokens = tokens.filter(t => isCompleted(t.status));
+  const servingToken = tokens.find(t => ['serving', 'Serving'].includes(t.status || ''));
+  const maxCompletedToken = completedTokens.length > 0 ? Math.max(...completedTokens.map(t => t.tokenNumber || 0)) : 0;
+  const currentServingNumber = servingToken ? servingToken.tokenNumber : (clinic?.currentToken || maxCompletedToken || 0);
+  const inQueueCount = tokens.filter(t => isWaiting(t.status)).length;
   const estimatedWaitMinutes = inQueueCount * 5;
 
   // Toggle Open/Closed clinic status (Top left button)
@@ -104,6 +110,23 @@ export default function ClinicAdminDashboard() {
     }
   };
 
+  // Reset queue for this clinic (clears all tokens, visited, upcoming to zero)
+  const handleResetQueue = async () => {
+    if (!token || !clinicId) return;
+    try {
+      await resetClinicQueue(clinicId, token);
+      setClinic((c: any) => ({ ...c, currentToken: 0 }));
+      setTokens([]);
+      toast({
+        title: "🔄 Queue Reset Successfully",
+        description: "All queue counts, visited patients, and upcoming patients set to zero!",
+      });
+      load();
+    } catch (err: any) {
+      toast({ title: err.message || "Failed to reset queue", variant: "destructive" });
+    }
+  };
+
   const handleNext = async () => {
     if (!token) return;
     try {
@@ -111,6 +134,17 @@ export default function ClinicAdminDashboard() {
       toast({ title: '📢 Called next patient!' });
     } catch (e: any) {
       toast({ title: e.message || 'Failed to call next patient', variant: 'destructive' });
+    }
+  };
+
+  const handleTokenStatusUpdate = async (tokenId: string, newStatus: string) => {
+    if (!token) return;
+    try {
+      await updateTokenStatus(tokenId, newStatus, token);
+      toast({ title: `Token status updated to ${newStatus}` });
+      load();
+    } catch (err: any) {
+      toast({ title: err.message || 'Failed to update token status', variant: 'destructive' });
     }
   };
 
@@ -195,20 +229,31 @@ export default function ClinicAdminDashboard() {
     >
       {/* Top Header Navigation */}
       <div className="w-full max-w-5xl mx-auto flex items-center justify-between gap-3 mb-2 z-20">
-        {/* Top Left: Open / Closed Status Toggle Button */}
-        <button
-          onClick={handleToggleStatus}
-          title={`Click to set as ${clinic?.status === 'Open' ? 'Closed' : 'Open'}`}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md border transition-all hover:scale-105 active:scale-95 ${
-            clinic?.status === 'Open'
-              ? 'bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-400'
-              : 'bg-red-500 hover:bg-red-600 text-white border-red-400'
-          }`}
-        >
-          <div className={`w-2.5 h-2.5 rounded-full ${clinic?.status === 'Open' ? 'bg-white animate-pulse' : 'bg-white'}`} />
-          <span>Clinic: {clinic?.status}</span>
-          <span className="text-[11px] opacity-85 font-normal">({clinic?.status === 'Open' ? 'Click to Close' : 'Click to Open'})</span>
-        </button>
+        {/* Top Left: Open / Closed Status Toggle Button & Reset Queue Button */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button
+            onClick={handleToggleStatus}
+            title={`Click to set as ${clinic?.status === 'Open' ? 'Closed' : 'Open'}`}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md border transition-all hover:scale-105 active:scale-95 ${
+              clinic?.status === 'Open'
+                ? 'bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-400'
+                : 'bg-red-500 hover:bg-red-600 text-white border-red-400'
+            }`}
+          >
+            <div className={`w-2.5 h-2.5 rounded-full ${clinic?.status === 'Open' ? 'bg-white animate-pulse' : 'bg-white'}`} />
+            <span>Clinic: {clinic?.status}</span>
+            <span className="text-[11px] opacity-85 font-normal">({clinic?.status === 'Open' ? 'Click to Close' : 'Click to Open'})</span>
+          </button>
+
+          <button
+            onClick={handleResetQueue}
+            title="Reset Queue to Zero (Clears all tokens, visited, and upcoming)"
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#00a6d6] hover:bg-[#0092bd] text-white border border-[#00a6d6] rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all hover:scale-105 active:scale-95"
+          >
+            <RotateCcw className="w-4 h-4" />
+            <span>Refresh Queue</span>
+          </button>
+        </div>
 
         {/* Top Right: Home and Logout */}
         <div className="flex items-center gap-2 sm:gap-3">
@@ -547,8 +592,8 @@ export default function ClinicAdminDashboard() {
                 </div>
               ) : (
                 waitingTokens.map((t, idx) => {
-                  const isServing = t.status === "Serving";
-                  const isNext = !isServing && idx === (waitingTokens.findIndex(x => x.status === "Serving") === -1 ? 0 : 1);
+                  const isServing = ['serving', 'Serving'].includes(t.status || '');
+                  const isNext = !isServing && idx === (waitingTokens.findIndex(x => ['serving', 'Serving'].includes(x.status || '')) === -1 ? 0 : 1);
                   return (
                     <div
                       key={t._id}
@@ -583,12 +628,42 @@ export default function ClinicAdminDashboard() {
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-xs font-semibold text-slate-700">
-                          {isServing ? "At Counter" : `Wait: ~${idx * 5}m`}
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <div className="text-xs font-semibold text-slate-700">
+                            {isServing ? "At Counter" : `Wait: ~${idx * 5}m`}
+                          </div>
+                          <div className="text-[11px] text-slate-400 mt-0.5">
+                            {new Date(t.bookedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
                         </div>
-                        <div className="text-[11px] text-slate-400 mt-0.5">
-                          {new Date(t.bookedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+
+                        <div className="flex items-center gap-1">
+                          {isServing && (
+                            <Button
+                              size="sm"
+                              className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2"
+                              onClick={() => handleTokenStatusUpdate(t._id, 'completed')}
+                            >
+                              Complete
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs text-red-600 hover:bg-red-50 border-red-200 px-2"
+                            onClick={() => handleTokenStatusUpdate(t._id, 'cancelled')}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 text-xs text-amber-700 hover:bg-amber-50 px-2"
+                            onClick={() => handleTokenStatusUpdate(t._id, 'no_show')}
+                          >
+                            No-Show
+                          </Button>
                         </div>
                       </div>
                     </div>
