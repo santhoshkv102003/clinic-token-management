@@ -7,6 +7,9 @@ import { Server } from 'socket.io';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
@@ -18,7 +21,7 @@ const io         = new Server(httpServer, {
 });
 
 const PORT        = process.env.PORT        || 3000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://kit27cse48_db_user:mxKLZeyc0DNsBUHL@cluster0.tivhoe5.mongodb.net/clinic-token-system?retryWrites=true&w=majority&appName=Cluster0';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://kit27cse48_db_user:qbtC0UrsUkCQC2Y6@cluster0.nqhgzk2.mongodb.net/?appName=Cluster0';
 const JWT_SECRET  = process.env.JWT_SECRET  || 'clinic_jwt_secret_key_2025';
 
 // ─── Initial Seed Data ────────────────────────────────────────────────────────
