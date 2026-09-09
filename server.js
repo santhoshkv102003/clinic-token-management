@@ -405,21 +405,24 @@ async function dbCreateToken(data) {
   return newToken;
 }
 
-async function findTokenByIdOrNumber(tokenId) {
+async function findTokenByIdOrNumber(tokenId, clinicId) {
   if (!tokenId) return null;
   let tokenDoc = null;
+
   const isNum = !isNaN(Number(tokenId));
   const num = isNum ? Number(tokenId) : -1;
+  const cid = (clinicId || '').toUpperCase();
 
   if (isMongoReady()) {
     try {
       if (mongoose.Types.ObjectId.isValid(tokenId)) {
         tokenDoc = await Token.findById(tokenId);
       }
-      if (!tokenDoc) {
-        const conditions = [{ _id: tokenId }];
-        if (isNum) conditions.push({ tokenNumber: num });
-        tokenDoc = await Token.findOne({ $or: conditions });
+      if (!tokenDoc && cid && isNum) {
+        tokenDoc = await Token.findOne({ clinicId: cid, tokenNumber: num });
+      }
+      if (!tokenDoc && isNum) {
+        tokenDoc = await Token.findOne({ tokenNumber: num }).sort({ bookedAt: -1 });
       }
     } catch (e) {
       console.warn('findTokenByIdOrNumber DB warning:', e.message);
@@ -428,7 +431,9 @@ async function findTokenByIdOrNumber(tokenId) {
 
   if (!tokenDoc) {
     tokenDoc = inMemoryTokens.find(t => 
-      String(t._id) === String(tokenId) || (isNum && Number(t.tokenNumber) === num)
+      String(t._id) === String(tokenId) || 
+      (cid && t.clinicId === cid && Number(t.tokenNumber) === num) ||
+      (isNum && Number(t.tokenNumber) === num)
     );
   }
 
@@ -660,7 +665,8 @@ app.get('/api/clinics/:clinicId/queue', async (req, res) => {
 app.get('/api/tokens/:tokenId', async (req, res) => {
   try {
     const { tokenId } = req.params;
-    const tokenDoc = await findTokenByIdOrNumber(tokenId);
+    const clinicId = (req.query.clinicId || '').toUpperCase();
+    const tokenDoc = await findTokenByIdOrNumber(tokenId, clinicId);
     if (!tokenDoc) return res.status(404).json({ error: 'Token not found' });
 
     const obj = tokenDoc.toObject ? tokenDoc.toObject() : tokenDoc;

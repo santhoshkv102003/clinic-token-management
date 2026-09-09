@@ -84,8 +84,9 @@ export async function setFeatured(clinicId: string, featured: boolean, token: st
   }));
 }
 
-export async function fetchTokenDetails(tokenId: string) {
-  return handle(await fetch(`${BASE}/api/tokens/${tokenId}`));
+export async function fetchTokenDetails(tokenId: string, clinicId?: string) {
+  const query = clinicId ? `?clinicId=${encodeURIComponent(clinicId)}` : '';
+  return handle(await fetch(`${BASE}/api/tokens/${tokenId}${query}`));
 }
 
 export async function updateTokenStatus(tokenId: string, status: string, token: string) {

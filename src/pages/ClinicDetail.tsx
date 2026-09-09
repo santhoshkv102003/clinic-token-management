@@ -127,7 +127,7 @@ export default function ClinicDetail() {
       });
 
       const tokenIdToTrack = tokenResult._id || tokenResult.id || tokenResult.tokenNumber;
-      navigate(`/patient/token/${tokenIdToTrack}`);
+      navigate(`/patient/token/${tokenIdToTrack}?clinicId=${clinicId}`);
     } catch (e: any) {
       toast({ title: e.message || "Booking failed", variant: "destructive" });
     } finally {

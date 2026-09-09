@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,8 @@ import { joinClinicRoom, leaveClinicRoom, onQueueUpdate } from "@/services/socke
 
 export default function TokenTracking() {
   const { tokenId } = useParams<{ tokenId: string }>();
+  const [searchParams] = useSearchParams();
+  const clinicIdParam = searchParams.get("clinicId") || undefined;
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -20,7 +22,7 @@ export default function TokenTracking() {
   const loadDetails = useCallback(async () => {
     if (!tokenId) return;
     try {
-      const data = await fetchTokenDetails(tokenId);
+      const data = await fetchTokenDetails(tokenId, clinicIdParam);
       setDetails(data);
       
       // Request browser notification permissions if available
