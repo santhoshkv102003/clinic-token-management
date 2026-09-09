@@ -824,7 +824,7 @@ app.post('/api/clinics', authMiddleware, requireSuperAdmin, async (req, res) => 
       updatedAt:   new Date()
     };
 
-    if (isMongoConnected) {
+    if (isMongoReady()) {
       try {
         const hash = await bcrypt.hash(adminPassword, 10);
         const clinicDoc = await Clinic.create({ ...newClinic, email: adminEmail, passwordHash: hash });
@@ -835,7 +835,6 @@ app.post('/api/clinics', authMiddleware, requireSuperAdmin, async (req, res) => 
           role:     'CLINIC_ADMIN',
           clinicId
         });
-        // Also push to in-memory so we stay in sync
         inMemoryClinics.push({ ...newClinic, email: adminEmail, passwordHash: hash });
         inMemoryUsers.push({
           _id: 'u_' + Date.now(),
@@ -850,8 +849,7 @@ app.post('/api/clinics', authMiddleware, requireSuperAdmin, async (req, res) => 
           message: `Clinic ${clinicId} created — admin login: ${adminEmail}`
         });
       } catch (e) {
-        isMongoConnected = false;
-        // Fall through to in-memory path
+        console.warn('createClinic DB warning:', e.message);
       }
     }
 
@@ -890,14 +888,14 @@ app.put('/api/clinics/:clinicId', authMiddleware, requireClinicAccess, async (re
     if (isActive !== undefined) updates.isActive = isActive;
     if (featured !== undefined) updates.featured = featured;
 
-    if (isMongoConnected) {
+    if (isMongoReady()) {
       try {
         await Clinic.findOneAndUpdate(
           { clinicId: cid },
           { $set: updates },
           { new: true }
         );
-      } catch (e) { isMongoConnected = false; }
+      } catch (e) { console.warn('updateClinic DB warning:', e.message); }
     }
 
     const c = inMemoryClinics.find(x => x.clinicId === cid);
@@ -925,10 +923,10 @@ app.put('/api/clinics/:clinicId/status', authMiddleware, requireClinicAccess, as
     if (status !== undefined) updates.status = status;
     if (isActive !== undefined) updates.isActive = isActive;
 
-    if (isMongoConnected) {
+    if (isMongoReady()) {
       try {
         await Clinic.findOneAndUpdate({ clinicId: cid }, { $set: updates }, { new: true });
-      } catch (e) { isMongoConnected = false; }
+      } catch (e) { console.warn('updateStatus DB warning:', e.message); }
     }
 
     const c = inMemoryClinics.find(x => x.clinicId === cid);
@@ -950,25 +948,23 @@ app.delete('/api/clinics/:clinicId', authMiddleware, requireSuperAdmin, async (r
     if (!existing) return res.status(404).json({ error: 'Clinic not found' });
 
     // 1. Delete target clinic, associated tokens, and admin user
-    if (isMongoConnected) {
+    if (isMongoReady()) {
       try {
         await Clinic.deleteOne({ clinicId: targetCid });
         await Token.deleteMany({ clinicId: targetCid });
         await User.deleteMany({ clinicId: targetCid });
-      } catch (e) { isMongoConnected = false; }
+      } catch (e) { console.warn('deleteClinic DB warning:', e.message); }
     }
 
     inMemoryClinics = inMemoryClinics.filter(c => c.clinicId !== targetCid);
     inMemoryTokens  = inMemoryTokens.filter(t => t.clinicId !== targetCid);
     inMemoryUsers   = inMemoryUsers.filter(u => u.clinicId !== targetCid);
 
-    // 2. Fetch all remaining clinics and sort by previous numeric order
     let allRemaining = [];
-    if (isMongoConnected) {
+    if (isMongoReady()) {
       try {
         allRemaining = await Clinic.find({});
       } catch (e) {
-        isMongoConnected = false;
         allRemaining = inMemoryClinics;
       }
     } else {
@@ -981,7 +977,6 @@ app.delete('/api/clinics/:clinicId', authMiddleware, requireSuperAdmin, async (r
       return numA - numB;
     });
 
-    // 3. Resequence remaining clinics sequentially C001, C002...
     for (let i = 0; i < allRemaining.length; i++) {
       const newNum = i + 1;
       const newCid = 'C' + String(newNum).padStart(3, '0');
@@ -991,12 +986,12 @@ app.delete('/api/clinics/:clinicId', authMiddleware, requireSuperAdmin, async (r
         const clinicDoc = allRemaining[i];
         const newEmail = getClinicUsername(clinicDoc.clinicName, newCid);
 
-        if (isMongoConnected) {
+        if (isMongoReady()) {
           try {
             await Clinic.updateOne({ _id: clinicDoc._id }, { $set: { clinicId: newCid } });
             await Token.updateMany({ clinicId: oldCid }, { $set: { clinicId: newCid } });
             await User.updateOne({ clinicId: oldCid }, { $set: { clinicId: newCid, email: newEmail } });
-          } catch (e) { isMongoConnected = false; }
+          } catch (e) { console.warn('resequence DB warning:', e.message); }
         }
 
         const memClinic = inMemoryClinics.find(c => c.clinicId === oldCid);
@@ -1029,7 +1024,7 @@ app.post('/api/clinics/:clinicId/next', authMiddleware, requireClinicAccess, asy
 
     const deptFilter = department ? String(department).trim() : null;
 
-    if (isMongoConnected) {
+    if (isMongoReady()) {
       try {
         const servingQuery = { clinicId: cid, status: { $in: ['Serving', 'serving'] } };
         const waitingQuery = { clinicId: cid, status: { $in: ['Waiting', 'waiting'] } };
@@ -1043,14 +1038,13 @@ app.post('/api/clinics/:clinicId/next', authMiddleware, requireClinicAccess, asy
         if (next) {
           clinic.currentToken = next.tokenNumber;
         } else {
-          // If no waiting patients left, find the highest completed token number or keep currentToken
           const highestToken = await Token.findOne({ clinicId: cid }).sort({ tokenNumber: -1 });
           if (highestToken) clinic.currentToken = highestToken.tokenNumber;
         }
         await clinic.save();
         await emitClinicUpdate(cid);
         return res.json({ currentToken: clinic.currentToken, next: next || null });
-      } catch (e) { isMongoConnected = false; }
+      } catch (e) { console.warn('nextPatient DB warning:', e.message); }
     }
 
     // In-memory update
@@ -1080,11 +1074,11 @@ app.post('/api/clinics/:clinicId/next', authMiddleware, requireClinicAccess, asy
 app.post('/api/clinics/:clinicId/reset', authMiddleware, requireClinicAccess, async (req, res) => {
   try {
     const cid = req.params.clinicId.toUpperCase();
-    if (isMongoConnected) {
+    if (isMongoReady()) {
       try {
         await Token.deleteMany({ clinicId: cid });
         await Clinic.findOneAndUpdate({ clinicId: cid }, { currentToken: 0 });
-      } catch (e) { isMongoConnected = false; }
+      } catch (e) { console.warn('resetQueue DB warning:', e.message); }
     }
     inMemoryTokens = inMemoryTokens.filter(t => t.clinicId !== cid);
     const c = inMemoryClinics.find(x => x.clinicId === cid);
