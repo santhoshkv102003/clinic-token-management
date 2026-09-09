@@ -47,11 +47,12 @@ export default function TokenTracking() {
       }
       setPrevStatus(currentStatus);
     } catch (e: any) {
-      toast({ title: "Failed to load token status", variant: "destructive" });
+      console.error("Failed to load token tracking details:", e);
+      toast({ title: e.message || "Failed to load token status", variant: "destructive" });
     } finally {
       setLoading(false);
     }
-  }, [tokenId, prevStatus, toast]);
+  }, [tokenId, clinicIdParam, prevStatus, toast]);
 
   useEffect(() => {
     loadDetails();

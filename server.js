@@ -409,32 +409,50 @@ async function findTokenByIdOrNumber(tokenId, clinicId) {
   if (!tokenId) return null;
   let tokenDoc = null;
 
-  const isNum = !isNaN(Number(tokenId));
-  const num = isNum ? Number(tokenId) : -1;
-  const cid = (clinicId || '').toUpperCase();
+  const rawId = String(tokenId).trim();
+  const cid = (clinicId || '').toUpperCase().trim();
+  const num = parseInt(rawId, 10);
+  const isNumeric = !isNaN(num) && String(num) === rawId;
 
   if (isMongoReady()) {
     try {
-      if (mongoose.Types.ObjectId.isValid(tokenId)) {
-        tokenDoc = await Token.findById(tokenId);
+      // 1. Search by ObjectId if valid 24-char hex
+      if (mongoose.Types.ObjectId.isValid(rawId)) {
+        tokenDoc = await Token.findById(rawId);
       }
-      if (!tokenDoc && cid && isNum) {
+
+      // 2. Search by string _id (if valid ObjectId)
+      if (!tokenDoc && mongoose.Types.ObjectId.isValid(rawId)) {
+        tokenDoc = await Token.findOne({ _id: new mongoose.Types.ObjectId(rawId) });
+      }
+
+      // 3. Search by clinicId + tokenNumber if numeric
+      if (!tokenDoc && cid && !isNaN(num)) {
         tokenDoc = await Token.findOne({ clinicId: cid, tokenNumber: num });
       }
-      if (!tokenDoc && isNum) {
-        tokenDoc = await Token.findOne({ tokenNumber: num }).sort({ bookedAt: -1 });
+
+      // 4. Search by tokenNumber alone if numeric
+      if (!tokenDoc && isNumeric) {
+        if (cid) {
+          tokenDoc = await Token.findOne({ clinicId: cid, tokenNumber: num });
+        }
+        if (!tokenDoc) {
+          tokenDoc = await Token.findOne({ tokenNumber: num }).sort({ bookedAt: -1 });
+        }
       }
     } catch (e) {
       console.warn('findTokenByIdOrNumber DB warning:', e.message);
     }
   }
 
+  // 5. In-memory fallback
   if (!tokenDoc) {
-    tokenDoc = inMemoryTokens.find(t => 
-      String(t._id) === String(tokenId) || 
-      (cid && t.clinicId === cid && Number(t.tokenNumber) === num) ||
-      (isNum && Number(t.tokenNumber) === num)
-    );
+    tokenDoc = inMemoryTokens.find(t => {
+      const matchId = String(t._id) === rawId || String(t.id) === rawId;
+      const matchClinicNum = cid && t.clinicId === cid && Number(t.tokenNumber) === num;
+      const matchNum = !isNaN(num) && Number(t.tokenNumber) === num;
+      return matchId || matchClinicNum || matchNum;
+    });
   }
 
   return tokenDoc;
