@@ -74,6 +74,8 @@ export default function ClinicDetail() {
     }
   }, [clinicId, loadQueue]);
 
+  const isWaitingOrServing = (s: string) => ['waiting', 'Waiting', 'serving', 'Serving'].includes(s || '');
+  const isWaiting = (s: string) => ['waiting', 'Waiting'].includes(s || '');
   const isCompleted = (s: string) => ['completed', 'Completed'].includes(s || '');
 
   const waitingTokens = tokens.filter(t => isWaitingOrServing(t.status));
@@ -88,13 +90,18 @@ export default function ClinicDetail() {
   const handleBookToken = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!clinicId) return;
-    if (!name.trim() || !phone.trim()) {
-      toast({ title: "Name and Phone number are required", variant: "destructive" });
+    if (!name.trim() || !phone.trim() || !age.trim() || !department) {
+      toast({ title: "Please fill in all fields", variant: "destructive" });
+      return;
+    }
+    const ageNum = parseInt(age);
+    if (isNaN(ageNum) || ageNum < 0 || ageNum > 130) {
+      toast({ title: "Invalid age", variant: "destructive" });
       return;
     }
     const finalDept = department === "Others" ? customDept : department;
     if (!finalDept || !finalDept.trim()) {
-      toast({ title: "Please select a category/department", variant: "destructive" });
+      toast({ title: "Please select a department", variant: "destructive" });
       return;
     }
 
@@ -104,7 +111,7 @@ export default function ClinicDetail() {
         clinicId,
         name: name.trim(),
         phone: phone.trim(),
-        age: age ? parseInt(age) : undefined,
+        age: ageNum,
         department: finalDept.trim(),
       });
 
@@ -292,17 +299,17 @@ export default function ClinicDetail() {
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-slate-800 text-center flex items-center justify-center gap-2">
               <Ticket className="w-6 h-6 text-[#00a6d6]" />
-              Patient Booking
+              Book Patient Token
             </DialogTitle>
             <DialogDescription className="text-center text-xs text-slate-500">
-              {clinic.clinicName} ({clinic.clinicId})
+              {clinic.clinicName}
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleBookToken} className="space-y-4 py-2">
             <div className="space-y-1">
               <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-[#00a6d6]" /> Patient Name *
+                <User className="w-3.5 h-3.5 text-[#00a6d6]" /> Full Name *
               </Label>
               <Input
                 required
@@ -315,7 +322,7 @@ export default function ClinicDetail() {
 
             <div className="space-y-1">
               <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5 text-[#00a6d6]" /> Patient Phone Number *
+                <Phone className="w-3.5 h-3.5 text-[#00a6d6]" /> Phone Number *
               </Label>
               <Input
                 required
@@ -327,41 +334,43 @@ export default function ClinicDetail() {
               />
             </div>
 
-            <div className="space-y-1">
-              <Label className="text-xs font-semibold text-slate-700">Patient Age *</Label>
-              <Input
-                required
-                type="number"
-                min="0"
-                max="130"
-                value={age}
-                onChange={(e) => setAge(e.target.value)}
-                placeholder="Enter patient age (e.g. 28)"
-                className="rounded-xl border-slate-200"
-              />
-            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold text-slate-700">Age *</Label>
+                <Input
+                  required
+                  type="number"
+                  min="0"
+                  max="130"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  placeholder="e.g. 28"
+                  className="rounded-xl border-slate-200"
+                />
+              </div>
 
-            <div className="space-y-1">
-              <Label className="text-xs font-semibold text-slate-700">Choose Category / Department *</Label>
-              <Select value={department} onValueChange={setDepartment}>
-                <SelectTrigger className="rounded-xl border-slate-200">
-                  <SelectValue placeholder="Select Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {DEPARTMENTS.map((d) => (
-                    <SelectItem key={d} value={d}>{d}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold text-slate-700">Department *</Label>
+                <Select value={department} onValueChange={setDepartment}>
+                  <SelectTrigger className="rounded-xl border-slate-200">
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DEPARTMENTS.map((d) => (
+                      <SelectItem key={d} value={d}>{d}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {department === "Others" && (
               <div className="space-y-1">
-                <Label className="text-xs font-semibold text-slate-700">Specify Category *</Label>
+                <Label className="text-xs font-semibold text-slate-700">Specify Department *</Label>
                 <Input
                   value={customDept}
                   onChange={(e) => setCustomDept(e.target.value)}
-                  placeholder="Enter custom category"
+                  placeholder="Enter custom department"
                   className="rounded-xl border-slate-200"
                 />
               </div>
@@ -370,9 +379,9 @@ export default function ClinicDetail() {
             <Button
               type="submit"
               disabled={bookingLoading || clinic.status === "Closed"}
-              className="w-full bg-[#00a6d6] hover:bg-[#0092bd] text-white font-bold py-3 rounded-xl mt-2 shadow-md"
+              className="w-full bg-[#00a6d6] hover:bg-[#0092bd] text-white font-bold py-3 rounded-xl mt-2 shadow-md text-base"
             >
-              {bookingLoading ? "Generating Token..." : "Get Token"}
+              {bookingLoading ? "Generating Token..." : "Generate Token"}
             </Button>
           </form>
         </DialogContent>

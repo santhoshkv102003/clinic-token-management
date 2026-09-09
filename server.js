@@ -41,14 +41,8 @@ const JWT_SECRET  = process.env.JWT_SECRET  || 'clinic_jwt_secret_key_2025';
  *   Dr.Karthi Prime Clinic,    C011 → k011@gmail.com
  */
 export function generateClinicEmail(clinicName, clinicId) {
-  // Extract only the numeric portion of the ID (e.g. "C010" → "010")
-  const numericId = (clinicId || '').replace(/\D/g, '');
-
-  // Strip Dr./Doctor prefix, then take the first letter of the first word
-  const name = (clinicName || '').replace(/^(Dr\.|Dr|Doctor)\s*/i, '').trim();
-  const firstLetter = (name.charAt(0) || 'c').toLowerCase();
-
-  return `${firstLetter}${numericId}@gmail.com`;
+  const numericId = (clinicId || '').replace(/\D/g, '').padStart(3, '0');
+  return `san${numericId}@gmail.com`;
 }
 
 export function getClinicUsername(clinicName, clinicId) {
@@ -403,8 +397,13 @@ async function dbCreateToken(data) {
 }
 
 async function dbFindUserByEmail(emailOrId) {
-  const input = (emailOrId || '').toLowerCase().trim();
-  const cid = (emailOrId || '').toUpperCase().trim();
+  const rawInput = (emailOrId || '').trim();
+  const input = rawInput.toLowerCase();
+
+  const digits = rawInput.replace(/\D/g, '');
+  const numericMatch = digits ? digits.padStart(3, '0') : '';
+  const cid = numericMatch ? `C${numericMatch}` : rawInput.toUpperCase();
+  const sanEmail = numericMatch ? `san${numericMatch}@gmail.com` : input;
 
   const superAdminAliases = [
     'superadmin', 'admin', 'santhosh', 'super admin', 'super', 
@@ -417,8 +416,10 @@ async function dbFindUserByEmail(emailOrId) {
     try {
       const orQueries = [
         { email: input },
-        { email: { $regex: new RegExp('^' + input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') } },
-        { clinicId: cid }
+        { email: sanEmail },
+        { clinicId: cid },
+        { clinicId: rawInput.toUpperCase() },
+        { email: { $regex: new RegExp('^' + input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') } }
       ];
       if (isSuperAlias) {
         orQueries.push({ email: 'santhosh@gmail.com' }, { email: 'superadmin@clinic.com' }, { role: 'SUPER_ADMIN' });
@@ -430,7 +431,9 @@ async function dbFindUserByEmail(emailOrId) {
 
   return inMemoryUsers.find(u => 
     u.email.toLowerCase() === input || 
+    u.email.toLowerCase() === sanEmail ||
     (u.clinicId && u.clinicId.toUpperCase() === cid) ||
+    (u.clinicId && u.clinicId.toUpperCase() === rawInput.toUpperCase()) ||
     (isSuperAlias && u.role === 'SUPER_ADMIN')
   ) || null;
 }

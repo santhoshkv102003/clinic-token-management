@@ -85,13 +85,13 @@ export default function ClinicAdminLogin() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
               <div className="space-y-1">
-                <Label htmlFor="clinic-id">Clinic ID (e.g. C010)</Label>
+                <Label htmlFor="clinic-id">Clinic ID (e.g. C025)</Label>
                 <Input
                   id="clinic-id"
                   type="text"
                   value={clinicId}
                   onChange={e => setClinicId(e.target.value)}
-                  placeholder="C010"
+                  placeholder="C025"
                   autoComplete="off"
                 />
               </div>
@@ -102,7 +102,7 @@ export default function ClinicAdminLogin() {
                   type="text"
                   value={emailOrUser}
                   onChange={e => setEmailOrUser(e.target.value)}
-                  placeholder="s010@gmail.com"
+                  placeholder="san025@gmail.com"
                   autoComplete="off"
                 />
               </div>

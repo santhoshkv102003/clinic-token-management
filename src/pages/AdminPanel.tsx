@@ -31,15 +31,12 @@ const EMPTY_FORM: FormState = {
 
 /**
  * Mirrors backend generateClinicEmail exactly.
- * Strip "Dr."/"Dr"/"Doctor", take first letter of first word + numeric ID.
- * e.g. "Maambalam Health Centre" + "C014" → "m014@gmail.com"
- *      "Dr.Karthi Prime Clinic"  + "C011" → "k011@gmail.com"
+ * Format: san{3-digit numeric ID}@gmail.com
+ * e.g. "Anitha Wellness Centre" + "C025" → "san025@gmail.com"
  */
 export function computeDefaultEmail(clinicName: string, clinicId: string): string {
-  const numericId = (clinicId || '').replace(/\D/g, '');
-  const name = (clinicName || '').replace(/^(Dr\.|Dr|Doctor)\s*/i, '').trim();
-  const firstLetter = (name.charAt(0) || 'c').toLowerCase();
-  return `${firstLetter}${numericId}@gmail.com`;
+  const numericId = (clinicId || '').replace(/\D/g, '').padStart(3, '0');
+  return `san${numericId}@gmail.com`;
 }
 
 export default function AdminPanel() {
