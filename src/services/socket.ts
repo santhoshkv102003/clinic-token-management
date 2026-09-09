@@ -7,6 +7,9 @@ const getSocketBaseUrl = () => {
     if (host === 'localhost' || host === '127.0.0.1') {
       return 'http://localhost:3000';
     }
+    if (host.includes('vercel.app')) {
+      return window.location.origin;
+    }
   }
   return 'https://multi-clinic-token-management.onrender.com';
 };

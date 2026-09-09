@@ -22,7 +22,7 @@ const io         = new Server(httpServer, {
 
 const PORT        = process.env.PORT        || 3000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://kit27cse48_db_user:qbtC0UrsUkCQC2Y6@cluster0.nqhgzk2.mongodb.net/?appName=Cluster0';
-const JWT_SECRET  = process.env.JWT_SECRET  || 'clinic_jwt_secret_key_2025';
+const JWT_SECRET  = process.env.JWT_SECRET  || 'clinic_super_jwt_secret_key_2026';
 
 // ─── Initial Seed Data ────────────────────────────────────────────────────────
 

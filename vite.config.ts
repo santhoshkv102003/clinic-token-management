@@ -11,6 +11,8 @@ export default defineConfig(({ mode }) => ({
   server: {
     allowedHosts: [
       'clinic-token-management.onrender.com', // your render host
+      'clinic-token-management.vercel.app',   // your vercel host
+      '.vercel.app',
       'localhost',
       '127.0.0.1',
       '.onrender.com'

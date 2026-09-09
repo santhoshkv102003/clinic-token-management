@@ -5,6 +5,9 @@ const getApiBaseUrl = () => {
     if (host === 'localhost' || host === '127.0.0.1') {
       return 'http://localhost:3000';
     }
+    if (host.includes('vercel.app')) {
+      return ''; // Relative path for Vercel deployment
+    }
   }
   return 'https://multi-clinic-token-management.onrender.com';
 };
