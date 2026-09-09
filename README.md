@@ -1,4 +1,4 @@
 project demo
 
-URL: https://multi-clinic-token-management.vercel.app/
+URL: https://clinic-token-management.vercel.app/
 
