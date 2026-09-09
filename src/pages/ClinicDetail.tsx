@@ -25,6 +25,10 @@ const DEPARTMENTS = [
   "Others"
 ];
 
+const isWaitingOrServing = (s: string) => ['waiting', 'Waiting', 'serving', 'Serving'].includes(s || '');
+const isWaiting = (s: string) => ['waiting', 'Waiting'].includes(s || '');
+const isCompleted = (s: string) => ['completed', 'Completed'].includes(s || '');
+
 export default function ClinicDetail() {
   const { clinicId } = useParams<{ clinicId: string }>();
   const navigate = useNavigate();
@@ -73,10 +77,6 @@ export default function ClinicDetail() {
       };
     }
   }, [clinicId, loadQueue]);
-
-  const isWaitingOrServing = (s: string) => ['waiting', 'Waiting', 'serving', 'Serving'].includes(s || '');
-  const isWaiting = (s: string) => ['waiting', 'Waiting'].includes(s || '');
-  const isCompleted = (s: string) => ['completed', 'Completed'].includes(s || '');
 
   const waitingTokens = tokens.filter(t => isWaitingOrServing(t.status));
   const completedTokens = tokens.filter(t => isCompleted(t.status));
