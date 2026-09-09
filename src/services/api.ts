@@ -1,4 +1,15 @@
-const BASE = import.meta.env.VITE_API_BASE || '';
+const getApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_BASE) return import.meta.env.VITE_API_BASE;
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return 'http://localhost:3000';
+    }
+  }
+  return 'https://multi-clinic-token-management.onrender.com';
+};
+
+const BASE = getApiBaseUrl();
 
 function headers(token?: string | null) {
   const h: Record<string, string> = { 'Content-Type': 'application/json' };

@@ -1,6 +1,17 @@
 import { io, Socket } from 'socket.io-client';
 
-const BASE = import.meta.env.VITE_API_BASE || (typeof window !== 'undefined' ? window.location.origin : '');
+const getSocketBaseUrl = () => {
+  if (import.meta.env.VITE_API_BASE) return import.meta.env.VITE_API_BASE;
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return 'http://localhost:3000';
+    }
+  }
+  return 'https://multi-clinic-token-management.onrender.com';
+};
+
+const BASE = getSocketBaseUrl();
 
 let socket: Socket | null = null;
 
