@@ -732,6 +732,12 @@ app.post('/api/tokens', async (req, res) => {
     const { clinicId, name, phone, age, department } = req.body;
     if (!clinicId || !name || !phone)
       return res.status(400).json({ error: 'clinicId, name and phone required' });
+    
+    const cleanPhone = String(phone).trim();
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(cleanPhone))
+      return res.status(400).json({ error: 'Phone number must be a valid 10-digit number starting with 6, 7, 8, or 9' });
+
     const cid = clinicId.toUpperCase();
     const clinic = await dbGetClinic(cid);
     if (!clinic) return res.status(404).json({ error: 'Clinic not found' });
@@ -742,7 +748,7 @@ app.post('/api/tokens', async (req, res) => {
     const token = await dbCreateToken({
       clinicId: cid,
       name: name.trim(),
-      phone: phone.trim(),
+      phone: cleanPhone,
       age: age ? Number(age) : undefined,
       department: dept,
       status: 'waiting'

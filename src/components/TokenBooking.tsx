@@ -42,6 +42,17 @@ export function TokenBooking({ onBooked }: { onBooked?: () => void }) {
       return;
     }
 
+    const cleanPhone = phone.trim();
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(cleanPhone)) {
+      toast({
+        title: "Invalid Phone Number",
+        description: "Phone number must be a 10-digit number starting with 6, 7, 8, or 9",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Check if "Others" is selected but custom department is empty
     if (department === "Others" && !customDepartment.trim()) {
       toast({
@@ -67,7 +78,7 @@ export function TokenBooking({ onBooked }: { onBooked?: () => void }) {
 
     bookToken({
       name,
-      phone,
+      phone: cleanPhone,
       age: ageNumber,
       department: department === "Others" ? customDepartment.trim() : department,
       bookedAt: new Date().toISOString()
@@ -125,8 +136,9 @@ export function TokenBooking({ onBooked }: { onBooked?: () => void }) {
               id="phone"
               type="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="Enter your phone number"
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+              maxLength={10}
+              placeholder="10-digit mobile number (starts with 6-9)"
             />
           </div>
           <div>

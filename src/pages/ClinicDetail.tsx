@@ -94,6 +94,12 @@ export default function ClinicDetail() {
       toast({ title: "Please fill in all fields", variant: "destructive" });
       return;
     }
+    const cleanPhone = phone.trim();
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(cleanPhone)) {
+      toast({ title: "Invalid Phone Number", description: "Phone number must be a 10-digit number starting with 6, 7, 8, or 9", variant: "destructive" });
+      return;
+    }
     const ageNum = parseInt(age);
     if (isNaN(ageNum) || ageNum < 0 || ageNum > 130) {
       toast({ title: "Invalid age", variant: "destructive" });
@@ -328,8 +334,9 @@ export default function ClinicDetail() {
                 required
                 type="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="10-digit mobile number"
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                maxLength={10}
+                placeholder="10-digit mobile number (starts with 6-9)"
                 className="rounded-xl border-slate-200"
               />
             </div>
