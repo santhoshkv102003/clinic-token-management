@@ -129,21 +129,50 @@ export default function ClinicAdminDashboard() {
 
   const handleNext = async () => {
     if (!token) return;
+
+    // Optimistic UI Update: update current tokens & serving state instantly
+    const prevTokens = [...tokens];
+    const prevClinic = { ...clinic };
+
+    setTokens(prev => {
+      let servingUpdated = false;
+      return prev.map(t => {
+        const isCurrentlyServing = ['serving', 'Serving'].includes(t.status || '');
+        if (isCurrentlyServing) {
+          return { ...t, status: 'completed', completedAt: new Date().toISOString() };
+        }
+        if (!servingUpdated && ['waiting', 'Waiting'].includes(t.status || '')) {
+          servingUpdated = true;
+          return { ...t, status: 'serving' };
+        }
+        return t;
+      });
+    });
+
+    const nextWaitingToken = tokens.find(t => ['waiting', 'Waiting'].includes(t.status || ''));
+    if (nextWaitingToken) {
+      setClinic((c: any) => ({ ...c, currentToken: nextWaitingToken.tokenNumber }));
+    }
+
     try {
       await callNextPatient(clinicId, token);
       toast({ title: '📢 Called next patient!' });
     } catch (e: any) {
+      setTokens(prevTokens);
+      setClinic(prevClinic);
       toast({ title: e.message || 'Failed to call next patient', variant: 'destructive' });
     }
   };
 
   const handleTokenStatusUpdate = async (tokenId: string, newStatus: string) => {
     if (!token) return;
+    const prevTokens = [...tokens];
+    setTokens(prev => prev.map(t => (t._id === tokenId || t.id === tokenId || String(t.tokenNumber) === String(tokenId)) ? { ...t, status: newStatus } : t));
     try {
       await updateTokenStatus(tokenId, newStatus, token);
       toast({ title: `Token status updated to ${newStatus}` });
-      load();
     } catch (err: any) {
+      setTokens(prevTokens);
       toast({ title: err.message || 'Failed to update token status', variant: 'destructive' });
     }
   };

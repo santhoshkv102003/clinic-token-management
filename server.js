@@ -185,6 +185,15 @@ const tokenSchema = new mongoose.Schema({
   completedAt: { type: Date }
 });
 
+// Indexes for ultra-fast queries & queue operations
+tokenSchema.index({ clinicId: 1, tokenNumber: -1 });
+tokenSchema.index({ clinicId: 1, status: 1, tokenNumber: 1 });
+tokenSchema.index({ clinicId: 1, department: 1, status: 1 });
+tokenSchema.index({ tokenNumber: 1 });
+
+userSchema.index({ email: 1 });
+userSchema.index({ clinicId: 1 });
+
 const Clinic = mongoose.model('Clinic', clinicSchema);
 const User   = mongoose.model('User',   userSchema);
 const Token  = mongoose.model('Token',  tokenSchema);
@@ -202,7 +211,11 @@ async function ensureMongo() {
     return;
   }
   try {
-    await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 });
+    await mongoose.connect(MONGODB_URI, { 
+      serverSelectionTimeoutMS: 5000,
+      maxPoolSize: 10,
+      minPoolSize: 2
+    });
     isMongoConnected = true;
     console.log('✅ MongoDB connected to Atlas');
     if (!isSeeded) {
@@ -343,7 +356,7 @@ export async function generateClinicId() {
 async function dbGetClinics(query = {}) {
   if (isMongoReady()) {
     try {
-      return await Clinic.find(query).sort({ clinicName: 1 });
+      return await Clinic.find(query).sort({ clinicName: 1 }).lean();
     } catch (e) {
       console.warn('dbGetClinics query warning:', e.message);
     }
@@ -359,7 +372,7 @@ async function dbGetClinic(clinicId) {
   const cid = (clinicId || '').toUpperCase();
   if (isMongoReady()) {
     try {
-      const c = await Clinic.findOne({ clinicId: cid });
+      const c = await Clinic.findOne({ clinicId: cid }).lean();
       if (c) return c;
     } catch (e) {
       console.warn('dbGetClinic query warning:', e.message);
@@ -372,7 +385,7 @@ async function dbGetTokens(clinicId) {
   const cid = (clinicId || '').toUpperCase();
   if (isMongoReady()) {
     try {
-      return await Token.find({ clinicId: cid }).sort({ tokenNumber: 1 });
+      return await Token.find({ clinicId: cid }).sort({ tokenNumber: 1 }).lean();
     } catch (e) {
       console.warn('dbGetTokens query warning:', e.message);
     }
@@ -386,9 +399,10 @@ async function dbCreateToken(data) {
   const tokenStatus = (data.status || 'waiting').toLowerCase();
   if (isMongoReady()) {
     try {
-      const last = await Token.findOne({ clinicId: cid }).sort({ tokenNumber: -1 });
+      const last = await Token.findOne({ clinicId: cid }).sort({ tokenNumber: -1 }).lean();
       const number = last ? last.tokenNumber + 1 : 1;
-      return await Token.create({ ...data, clinicId: cid, department: dept, tokenNumber: number, status: tokenStatus });
+      const created = await Token.create({ ...data, clinicId: cid, department: dept, tokenNumber: number, status: tokenStatus });
+      return created.toObject ? created.toObject() : created;
     } catch (e) {
       console.warn('dbCreateToken query warning:', e.message);
     }
@@ -1037,16 +1051,17 @@ app.post('/api/clinics/:clinicId/next', authMiddleware, requireClinicAccess, asy
         }
 
         await Token.findOneAndUpdate(servingQuery, { $set: { status: 'completed', completedAt: new Date() } });
-        const next = await Token.findOneAndUpdate(waitingQuery, { $set: { status: 'serving' } }, { sort: { tokenNumber: 1 }, returnDocument: 'after' });
+        const next = await Token.findOneAndUpdate(waitingQuery, { $set: { status: 'serving' } }, { sort: { tokenNumber: 1 }, returnDocument: 'after' }).lean();
+        let newCurrentToken = clinic.currentToken || 0;
         if (next) {
-          clinic.currentToken = next.tokenNumber;
+          newCurrentToken = next.tokenNumber;
         } else {
-          const highestToken = await Token.findOne({ clinicId: cid }).sort({ tokenNumber: -1 });
-          if (highestToken) clinic.currentToken = highestToken.tokenNumber;
+          const highestToken = await Token.findOne({ clinicId: cid }).sort({ tokenNumber: -1 }).lean();
+          if (highestToken) newCurrentToken = highestToken.tokenNumber;
         }
-        await clinic.save();
+        await Clinic.findOneAndUpdate({ clinicId: cid }, { $set: { currentToken: newCurrentToken } });
         await emitClinicUpdate(cid);
-        return res.json({ currentToken: clinic.currentToken, next: next || null });
+        return res.json({ currentToken: newCurrentToken, next: next || null });
       } catch (e) { console.warn('nextPatient DB warning:', e.message); }
     }
 

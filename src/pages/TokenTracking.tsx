@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -17,7 +17,7 @@ export default function TokenTracking() {
 
   const [details, setDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [prevStatus, setPrevStatus] = useState<string | null>(null);
+  const prevStatusRef = useRef<string | null>(null);
 
   const loadDetails = useCallback(async () => {
     if (!tokenId) return;
@@ -32,7 +32,7 @@ export default function TokenTracking() {
 
       // Trigger notification if status changed to serving
       const currentStatus = (data?.token?.status || '').toLowerCase();
-      if (prevStatus && prevStatus !== currentStatus) {
+      if (prevStatusRef.current && prevStatusRef.current !== currentStatus) {
         if (currentStatus === 'serving') {
           toast({
             title: "📢 YOUR TOKEN IS CALLED!",
@@ -45,14 +45,14 @@ export default function TokenTracking() {
           }
         }
       }
-      setPrevStatus(currentStatus);
+      prevStatusRef.current = currentStatus;
     } catch (e: any) {
       console.error("Failed to load token tracking details:", e);
       toast({ title: e.message || "Failed to load token status", variant: "destructive" });
     } finally {
       setLoading(false);
     }
-  }, [tokenId, clinicIdParam, prevStatus, toast]);
+  }, [tokenId, clinicIdParam, toast]);
 
   useEffect(() => {
     loadDetails();

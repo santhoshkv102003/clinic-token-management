@@ -179,8 +179,24 @@ export default function AdminPanel() {
   };
 
   const handleNext = async (clinicId: string) => {
-    try { await callNextPatient(clinicId, token!); load(); }
-    catch (e: any) { toast({ title: e.message, variant: 'destructive' }); }
+    const prevClinics = [...clinics];
+    setClinics(prev => prev.map(c => {
+      if (c.clinicId === clinicId) {
+        const nextServing = (c.currentToken || 0) + 1;
+        const waiting = Math.max(0, (c.waitingCount || 0) - 1);
+        const serving = 1;
+        const completed = (c.completedCount || 0) + 1;
+        return { ...c, currentToken: nextServing, waitingCount: waiting, servingCount: serving, completedCount: completed };
+      }
+      return c;
+    }));
+    try {
+      await callNextPatient(clinicId, token!);
+      toast({ title: `📢 Called next patient for ${clinicId}` });
+    } catch (e: any) {
+      setClinics(prevClinics);
+      toast({ title: e.message, variant: 'destructive' });
+    }
   };
 
   const handleReset = async (clinicId: string) => {
