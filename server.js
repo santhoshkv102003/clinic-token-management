@@ -189,8 +189,12 @@ const Token  = mongoose.model('Token',  tokenSchema);
 let isMongoConnected = false;
 let isSeeded = false;
 
+function isMongoReady() {
+  return mongoose.connection.readyState === 1;
+}
+
 async function ensureMongo() {
-  if (mongoose.connection.readyState === 1) {
+  if (isMongoReady()) {
     isMongoConnected = true;
     return;
   }
@@ -309,11 +313,9 @@ async function seedMongoData() {
  * After C069 the sequence continues: C070, C071, …
  */
 export async function generateClinicId() {
-  // Start the floor at 9 so the very first ID is C010
   let highestNum = 9;
 
-  // Primary source: MongoDB (authoritative)
-  if (isMongoConnected) {
+  if (isMongoReady()) {
     try {
       const docs = await Clinic.find({}, { clinicId: 1 }).lean();
       for (const doc of docs) {
@@ -321,11 +323,10 @@ export async function generateClinicId() {
         if (!isNaN(num) && num > highestNum) highestNum = num;
       }
     } catch (e) {
-      isMongoConnected = false;
+      console.warn('generateClinicId query warning:', e.message);
     }
   }
 
-  // Fallback / supplement: in-memory store
   for (const c of inMemoryClinics) {
     const num = parseInt(String(c.clinicId || '').replace(/\D/g, ''), 10);
     if (!isNaN(num) && num > highestNum) highestNum = num;
@@ -337,10 +338,12 @@ export async function generateClinicId() {
 // ─── Resilient Data Access Helpers ───────────────────────────────────────────
 
 async function dbGetClinics(query = {}) {
-  if (isMongoConnected) {
+  if (isMongoReady()) {
     try {
       return await Clinic.find(query).sort({ clinicName: 1 });
-    } catch (e) { isMongoConnected = false; }
+    } catch (e) {
+      console.warn('dbGetClinics query warning:', e.message);
+    }
   }
   let list = inMemoryClinics;
   if (query.clinicId) list = list.filter(c => c.clinicId === query.clinicId);
@@ -351,21 +354,25 @@ async function dbGetClinics(query = {}) {
 
 async function dbGetClinic(clinicId) {
   const cid = (clinicId || '').toUpperCase();
-  if (isMongoConnected) {
+  if (isMongoReady()) {
     try {
       const c = await Clinic.findOne({ clinicId: cid });
       if (c) return c;
-    } catch (e) { isMongoConnected = false; }
+    } catch (e) {
+      console.warn('dbGetClinic query warning:', e.message);
+    }
   }
   return inMemoryClinics.find(c => c.clinicId === cid) || null;
 }
 
 async function dbGetTokens(clinicId) {
   const cid = (clinicId || '').toUpperCase();
-  if (isMongoConnected) {
+  if (isMongoReady()) {
     try {
       return await Token.find({ clinicId: cid }).sort({ tokenNumber: 1 });
-    } catch (e) { isMongoConnected = false; }
+    } catch (e) {
+      console.warn('dbGetTokens query warning:', e.message);
+    }
   }
   return inMemoryTokens.filter(t => t.clinicId === cid).sort((a, b) => a.tokenNumber - b.tokenNumber);
 }
@@ -374,12 +381,14 @@ async function dbCreateToken(data) {
   const cid = data.clinicId.toUpperCase();
   const dept = (data.department || 'General Medicine').trim();
   const tokenStatus = (data.status || 'waiting').toLowerCase();
-  if (isMongoConnected) {
+  if (isMongoReady()) {
     try {
       const last = await Token.findOne({ clinicId: cid }).sort({ tokenNumber: -1 });
       const number = last ? last.tokenNumber + 1 : 1;
       return await Token.create({ ...data, clinicId: cid, department: dept, tokenNumber: number, status: tokenStatus });
-    } catch (e) { isMongoConnected = false; }
+    } catch (e) {
+      console.warn('dbCreateToken query warning:', e.message);
+    }
   }
   const clinicTokens = inMemoryTokens.filter(t => t.clinicId === cid);
   const number = clinicTokens.length > 0 ? Math.max(...clinicTokens.map(t => t.tokenNumber)) + 1 : 1;
@@ -394,6 +403,36 @@ async function dbCreateToken(data) {
   };
   inMemoryTokens.push(newToken);
   return newToken;
+}
+
+async function findTokenByIdOrNumber(tokenId) {
+  if (!tokenId) return null;
+  let tokenDoc = null;
+  const isNum = !isNaN(Number(tokenId));
+  const num = isNum ? Number(tokenId) : -1;
+
+  if (isMongoReady()) {
+    try {
+      if (mongoose.Types.ObjectId.isValid(tokenId)) {
+        tokenDoc = await Token.findById(tokenId);
+      }
+      if (!tokenDoc) {
+        const conditions = [{ _id: tokenId }];
+        if (isNum) conditions.push({ tokenNumber: num });
+        tokenDoc = await Token.findOne({ $or: conditions });
+      }
+    } catch (e) {
+      console.warn('findTokenByIdOrNumber DB warning:', e.message);
+    }
+  }
+
+  if (!tokenDoc) {
+    tokenDoc = inMemoryTokens.find(t => 
+      String(t._id) === String(tokenId) || (isNum && Number(t.tokenNumber) === num)
+    );
+  }
+
+  return tokenDoc;
 }
 
 async function dbFindUserByEmail(emailOrId) {
@@ -412,7 +451,7 @@ async function dbFindUserByEmail(emailOrId) {
   ];
   const isSuperAlias = superAdminAliases.includes(input);
 
-  if (isMongoConnected) {
+  if (isMongoReady()) {
     try {
       const orQueries = [
         { email: input },
@@ -426,7 +465,9 @@ async function dbFindUserByEmail(emailOrId) {
       }
       const u = await User.findOne({ $or: orQueries });
       if (u) return { ...u.toObject(), passwordHash: u.password };
-    } catch (e) { isMongoConnected = false; }
+    } catch (e) {
+      console.warn('dbFindUserByEmail query warning:', e.message);
+    }
   }
 
   return inMemoryUsers.find(u => 
@@ -619,19 +660,7 @@ app.get('/api/clinics/:clinicId/queue', async (req, res) => {
 app.get('/api/tokens/:tokenId', async (req, res) => {
   try {
     const { tokenId } = req.params;
-    let tokenDoc = null;
-    if (isMongoConnected) {
-      try {
-        if (mongoose.Types.ObjectId.isValid(tokenId)) {
-          tokenDoc = await Token.findById(tokenId);
-        } else {
-          tokenDoc = await Token.findOne({ _id: tokenId });
-        }
-      } catch (e) { isMongoConnected = false; }
-    }
-    if (!tokenDoc) {
-      tokenDoc = inMemoryTokens.find(t => String(t._id) === tokenId);
-    }
+    const tokenDoc = await findTokenByIdOrNumber(tokenId);
     if (!tokenDoc) return res.status(404).json({ error: 'Token not found' });
 
     const obj = tokenDoc.toObject ? tokenDoc.toObject() : tokenDoc;
@@ -693,19 +722,7 @@ app.put('/api/tokens/:tokenId/status', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` });
     }
 
-    let tokenDoc = null;
-    if (isMongoConnected) {
-      try {
-        if (mongoose.Types.ObjectId.isValid(tokenId)) {
-          tokenDoc = await Token.findById(tokenId);
-        } else {
-          tokenDoc = await Token.findOne({ _id: tokenId });
-        }
-      } catch (e) { isMongoConnected = false; }
-    }
-    if (!tokenDoc) {
-      tokenDoc = inMemoryTokens.find(t => String(t._id) === tokenId);
-    }
+    const tokenDoc = await findTokenByIdOrNumber(tokenId);
     if (!tokenDoc) return res.status(404).json({ error: 'Token not found' });
 
     const cid = tokenDoc.clinicId.toUpperCase();
@@ -726,7 +743,7 @@ app.put('/api/tokens/:tokenId/status', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: `Invalid state transition from '${currentStatus}' to '${newStatus}'` });
     }
 
-    if (isMongoConnected && tokenDoc.save) {
+    if (isMongoReady() && tokenDoc.save) {
       tokenDoc.status = newStatus;
       if (newStatus === 'completed') tokenDoc.completedAt = new Date();
       await tokenDoc.save();
