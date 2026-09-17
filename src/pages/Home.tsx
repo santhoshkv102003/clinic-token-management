@@ -10,10 +10,18 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Heart, Search, Shield, RefreshCw, X, Building2, DoorOpen,
-  DoorClosed, Plus, ArrowRight, ArrowLeft
+  DoorClosed, Plus, ArrowRight, ArrowLeft, Loader2, Stethoscope
 } from "lucide-react";
 import { fetchHomeSummary, fetchTop3Clinics, searchClinics, createClinic } from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
+
+// Fast fallback defaults for brand new users on Vercel deployment
+const DEFAULT_SUMMARY = { totalClinics: 60, openClinics: 60, closedClinics: 0 };
+const DEFAULT_TOP3 = [
+  { clinicId: 'C001', clinicName: 'Dr.Santhosh Health Center', doctorName: 'Santhosh', status: 'Open', currentToken: 0, waitingCount: 0, estimatedWait: 0 },
+  { clinicId: 'C011', clinicName: 'Dr.Nalam Health Clinic', doctorName: 'Nalam', status: 'Open', currentToken: 0, waitingCount: 0, estimatedWait: 0 },
+  { clinicId: 'C021', clinicName: 'Dr.Arogya Health Centre', doctorName: 'Arogya', status: 'Open', currentToken: 0, waitingCount: 0, estimatedWait: 0 }
+];
 
 export default function Home() {
   const navigate = useNavigate();
@@ -27,18 +35,18 @@ export default function Home() {
   const getCachedSummary = () => {
     try {
       const saved = sessionStorage.getItem(CACHE_KEY_SUMMARY);
-      return saved ? JSON.parse(saved) : { totalClinics: 0, openClinics: 0, closedClinics: 0 };
+      return saved ? JSON.parse(saved) : DEFAULT_SUMMARY;
     } catch {
-      return { totalClinics: 0, openClinics: 0, closedClinics: 0 };
+      return DEFAULT_SUMMARY;
     }
   };
 
   const getCachedTop3 = () => {
     try {
       const saved = sessionStorage.getItem(CACHE_KEY_TOP3);
-      return saved ? JSON.parse(saved) : [];
+      return saved ? JSON.parse(saved) : DEFAULT_TOP3;
     } catch {
-      return [];
+      return DEFAULT_TOP3;
     }
   };
 
@@ -49,8 +57,7 @@ export default function Home() {
   const [allClinicsAlphabetical, setAllClinicsAlphabetical] = useState<any[]>([]);
   const [results, setResults] = useState<any[]>([]);
   const [summary, setSummary] = useState(cachedSummary);
-  // If cached data exists, render instantly without skeleton delay!
-  const [loading, setLoading] = useState(cachedTop3.length === 0);
+  const [loading, setLoading] = useState(false); // Render instantly with fallbacks
   const [searching, setSearching] = useState(false);
   const [search, setSearch] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -392,8 +399,10 @@ export default function Home() {
                   <Building2 className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  {loading ? (
-                    <div className="h-6 w-8 bg-slate-200 animate-pulse rounded" />
+                  {loading && summary.totalClinics === 0 ? (
+                    <div className="flex items-center gap-1.5 py-1">
+                      <Loader2 className="w-5 h-5 text-[#00a6d6] animate-spin" />
+                    </div>
                   ) : (
                     <div className="text-2xl sm:text-3xl font-extrabold text-[#00a6d6] leading-none">
                       {summary.totalClinics}
@@ -411,8 +420,10 @@ export default function Home() {
                   <DoorOpen className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  {loading ? (
-                    <div className="h-6 w-8 bg-slate-200 animate-pulse rounded" />
+                  {loading && summary.totalClinics === 0 ? (
+                    <div className="flex items-center gap-1.5 py-1">
+                      <Loader2 className="w-5 h-5 text-[#059669] animate-spin" />
+                    </div>
                   ) : (
                     <div className="text-2xl sm:text-3xl font-extrabold text-[#059669] leading-none">
                       {summary.openClinics}
@@ -430,8 +441,10 @@ export default function Home() {
                   <DoorClosed className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  {loading ? (
-                    <div className="h-6 w-8 bg-slate-200 animate-pulse rounded" />
+                  {loading && summary.totalClinics === 0 ? (
+                    <div className="flex items-center gap-1.5 py-1">
+                      <Loader2 className="w-5 h-5 text-[#ef4444] animate-spin" />
+                    </div>
                   ) : (
                     <div className="text-2xl sm:text-3xl font-extrabold text-[#ef4444] leading-none">
                       {summary.closedClinics}
@@ -465,12 +478,26 @@ export default function Home() {
 
             {/* ── Clinics Horizontal Rows Container ── */}
             <div className="space-y-3">
-              {loading ? (
+              {loading && displayCards.length === 0 ? (
                 [1, 2, 3].map((i) => (
                   <div
                     key={i}
-                    className="h-20 bg-white/40 rounded-2xl animate-pulse border border-white/60"
-                  />
+                    className="bg-white/70 backdrop-blur-md rounded-2xl p-4 border border-white/80 shadow-xs flex items-center justify-between gap-4"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-full bg-[#00a6d6]/10 text-[#00a6d6] flex items-center justify-center shrink-0">
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="h-4 w-36 bg-slate-200/80 rounded-md animate-pulse" />
+                        <div className="h-3 w-20 bg-slate-100 rounded-md animate-pulse" />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-400 text-xs font-semibold">
+                      <Loader2 className="w-4 h-4 animate-spin text-[#00a6d6]" />
+                      <span>Loading live queues...</span>
+                    </div>
+                  </div>
                 ))
               ) : displayCards.length === 0 ? (
                 <div className="text-center py-12 bg-white/60 backdrop-blur-md rounded-2xl border border-white/60 shadow-xs">
