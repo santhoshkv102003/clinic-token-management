@@ -20,11 +20,37 @@ export default function Home() {
   const { toast } = useToast();
   const { token, login } = useAuth();
 
-  const [top3, setTop3] = useState<any[]>([]);
+  // Instant Cache helpers
+  const CACHE_KEY_SUMMARY = "cq_home_summary_cache";
+  const CACHE_KEY_TOP3 = "cq_home_top3_cache";
+
+  const getCachedSummary = () => {
+    try {
+      const saved = sessionStorage.getItem(CACHE_KEY_SUMMARY);
+      return saved ? JSON.parse(saved) : { totalClinics: 0, openClinics: 0, closedClinics: 0 };
+    } catch {
+      return { totalClinics: 0, openClinics: 0, closedClinics: 0 };
+    }
+  };
+
+  const getCachedTop3 = () => {
+    try {
+      const saved = sessionStorage.getItem(CACHE_KEY_TOP3);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const cachedTop3 = getCachedTop3();
+  const cachedSummary = getCachedSummary();
+
+  const [top3, setTop3] = useState<any[]>(cachedTop3);
   const [allClinicsAlphabetical, setAllClinicsAlphabetical] = useState<any[]>([]);
   const [results, setResults] = useState<any[]>([]);
-  const [summary, setSummary] = useState({ totalClinics: 0, openClinics: 0, closedClinics: 0 });
-  const [loading, setLoading] = useState(true);
+  const [summary, setSummary] = useState(cachedSummary);
+  // If cached data exists, render instantly without skeleton delay!
+  const [loading, setLoading] = useState(cachedTop3.length === 0);
   const [searching, setSearching] = useState(false);
   const [search, setSearch] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -51,18 +77,36 @@ export default function Home() {
 
   const loadHome = async () => {
     try {
-      setLoading(true);
+      // Only show skeleton loading if we have no cached data at all
+      if (top3.length === 0) {
+        setLoading(true);
+      }
       setError("");
-      const [sum, top, all] = await Promise.all([
+
+      // Fetch Summary and Top 3 Clinics in parallel for ultra-fast rendering
+      const [sum, top] = await Promise.all([
         fetchHomeSummary(),
         fetchTop3Clinics(),
-        searchClinics(""), // Returns all clinics sorted A-Z
       ]);
+
       setSummary(sum);
       setTop3(top);
-      setAllClinicsAlphabetical(all);
+      setLoading(false);
+
+      // Save to cache for instant future loads
+      try {
+        sessionStorage.setItem(CACHE_KEY_SUMMARY, JSON.stringify(sum));
+        sessionStorage.setItem(CACHE_KEY_TOP3, JSON.stringify(top));
+      } catch {}
+
+      // Non-blocking background fetch for search dropdown list
+      searchClinics("").then((all) => {
+        setAllClinicsAlphabetical(all);
+      }).catch(() => {});
     } catch {
-      setError("Failed to load. Is the server running?");
+      if (top3.length === 0) {
+        setError("Failed to load. Is the server running?");
+      }
     } finally {
       setLoading(false);
     }
