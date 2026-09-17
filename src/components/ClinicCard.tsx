@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, Users, Stethoscope, ArrowRight } from "lucide-react";
+import { formatWaitTime } from "@/lib/utils";
 
 interface ClinicCardProps {
   clinicId: string;
@@ -56,7 +57,7 @@ export function ClinicCard({ clinicId, clinicName, doctorName, status, currentTo
           <div className="p-1.5 sm:p-2 bg-warning/5 rounded-lg border border-warning/10">
             <div className="flex items-center justify-center gap-1">
               <Clock className="w-3 h-3 text-warning" />
-              <div className="text-lg sm:text-xl font-bold text-warning">{estimatedWait}</div>
+              <div className="text-lg sm:text-xl font-bold text-warning">{formatWaitTime(estimatedWait)}</div>
             </div>
             <div className="text-[9px] sm:text-[10px] text-muted-foreground leading-tight">Min wait</div>
           </div>

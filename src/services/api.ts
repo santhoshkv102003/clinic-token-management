@@ -22,6 +22,12 @@ function headers(token?: string | null) {
 
 async function handle(res: Response) {
   if (!res.ok) {
+    if (res.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth');
+      }
+      throw new Error('Session expired or unauthorized. Please log in again.');
+    }
     const e = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(e.error || 'Request failed');
   }
@@ -138,4 +144,14 @@ export async function fetchNextClinicId(token: string): Promise<string> {
 
 export async function fetchClinicStats(clinicId: string, token: string) {
   return handle(await fetch(`${BASE}/api/clinics/${clinicId}/stats`, { headers: headers(token) }));
+}
+
+export async function updateAverageTreatmentTime(clinicId: string, averageTreatmentTime: number, token: string) {
+  return handle(await fetch(`${BASE}/api/clinics/${clinicId}/average-time`, {
+    method: 'PUT', headers: headers(token), body: JSON.stringify({ averageTreatmentTime })
+  }));
+}
+
+export async function fetchClinicHistory(clinicId: string, token: string) {
+  return handle(await fetch(`${BASE}/api/clinics/${clinicId}/history`, { headers: headers(token) }));
 }

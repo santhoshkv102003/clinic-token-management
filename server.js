@@ -149,20 +149,21 @@ let inMemoryUsers   = JSON.parse(JSON.stringify(INITIAL_USERS));
 // ─── Mongoose Schemas & Models ────────────────────────────────────────────────
 
 const clinicSchema = new mongoose.Schema({
-  clinicId:    { type: String, required: true, unique: true, uppercase: true, trim: true },
-  clinicName:  { type: String, required: true, trim: true },
-  doctorName:  { type: String, required: true, trim: true },
-  city:        { type: String, default: 'Chennai', trim: true },
-  email:       { type: String, required: true, unique: true, lowercase: true, trim: true },
-  passwordHash:{ type: String, required: true },
-  phone:       { type: String, default: '' },
-  address:     { type: String, default: '' },
-  status:      { type: String, enum: ['Open','Closed'], default: 'Open' },
-  isActive:    { type: Boolean, default: true },
-  featured:    { type: Boolean, default: false },
-  currentToken:{ type: Number, default: 0 },
-  createdAt:   { type: Date, default: Date.now },
-  updatedAt:   { type: Date, default: Date.now }
+  clinicId:             { type: String, required: true, unique: true, uppercase: true, trim: true },
+  clinicName:           { type: String, required: true, trim: true },
+  doctorName:           { type: String, required: true, trim: true },
+  city:                 { type: String, default: 'Chennai', trim: true },
+  email:                { type: String, required: true, unique: true, lowercase: true, trim: true },
+  passwordHash:         { type: String, required: true },
+  phone:                { type: String, default: '' },
+  address:              { type: String, default: '' },
+  status:               { type: String, enum: ['Open','Closed'], default: 'Open' },
+  isActive:             { type: Boolean, default: true },
+  featured:             { type: Boolean, default: false },
+  currentToken:         { type: Number, default: 0 },
+  averageTreatmentTime: { type: Number, default: 5, min: 1, max: 120 },
+  createdAt:            { type: Date, default: Date.now },
+  updatedAt:            { type: Date, default: Date.now }
 });
 
 const userSchema = new mongoose.Schema({
@@ -173,30 +174,50 @@ const userSchema = new mongoose.Schema({
   clinicId: { type: String, default: null }
 });
 
+export function getTodayDateString(dateObj = new Date()) {
+  const d = new Date(dateObj);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 const tokenSchema = new mongoose.Schema({
-  clinicId:    { type: String, required: true, uppercase: true, trim: true },
-  tokenNumber: { type: Number, required: true },
-  name:        { type: String, required: true, trim: true },
-  phone:       { type: String, required: true, trim: true },
-  age:         { type: Number },
-  department:  { type: String, trim: true, default: 'General Medicine' },
-  status:      { type: String, enum: ['waiting', 'serving', 'completed', 'cancelled', 'no_show', 'Waiting', 'Serving', 'Completed'], default: 'waiting' },
-  bookedAt:    { type: Date, default: Date.now },
-  completedAt: { type: Date }
+  clinicId:                { type: String, required: true, uppercase: true, trim: true },
+  tokenNumber:             { type: Number, required: true },
+  name:                    { type: String, required: true, trim: true },
+  phone:                   { type: String, required: true, trim: true },
+  age:                     { type: Number },
+  department:              { type: String, trim: true, default: 'General Medicine' },
+  status:                  { type: String, enum: ['waiting', 'serving', 'completed', 'cancelled', 'no_show', 'Waiting', 'Serving', 'Completed'], default: 'waiting' },
+  sessionDate:             { type: String, required: true, index: true },
+  bookedAt:                { type: Date, default: Date.now },
+  consultationStartedAt:   { type: Date },
+  consultationCompletedAt: { type: Date },
+  consultationDuration:    { type: Number },
+  completedAt:             { type: Date }
 });
 
 // Indexes for ultra-fast queries & queue operations
 tokenSchema.index({ clinicId: 1, tokenNumber: -1 });
 tokenSchema.index({ clinicId: 1, status: 1, tokenNumber: 1 });
 tokenSchema.index({ clinicId: 1, department: 1, status: 1 });
+tokenSchema.index({ clinicId: 1, sessionDate: 1, department: 1, tokenNumber: -1 });
 tokenSchema.index({ tokenNumber: 1 });
 
 userSchema.index({ email: 1 });
 userSchema.index({ clinicId: 1 });
 
-const Clinic = mongoose.model('Clinic', clinicSchema);
-const User   = mongoose.model('User',   userSchema);
-const Token  = mongoose.model('Token',  tokenSchema);
+const dailyCounterSchema = new mongoose.Schema({
+  key: { type: String, required: true, unique: true },
+  seq: { type: Number, default: 0 }
+});
+dailyCounterSchema.index({ key: 1 });
+
+const Clinic       = mongoose.model('Clinic',       clinicSchema);
+const User         = mongoose.model('User',         userSchema);
+const Token        = mongoose.model('Token',        tokenSchema);
+const DailyCounter = mongoose.model('DailyCounter', dailyCounterSchema);
 
 let isMongoConnected = false;
 let isSeeded = false;
@@ -381,34 +402,95 @@ async function dbGetClinic(clinicId) {
   return inMemoryClinics.find(c => c.clinicId === cid) || null;
 }
 
-async function dbGetTokens(clinicId) {
+async function dbGetTokens(clinicId, dateFilter) {
   const cid = (clinicId || '').toUpperCase();
+  const targetDate = dateFilter || getTodayDateString();
   if (isMongoReady()) {
     try {
-      return await Token.find({ clinicId: cid }).sort({ tokenNumber: 1 }).lean();
+      return await Token.find({ clinicId: cid, $or: [{ sessionDate: targetDate }, { sessionDate: { $exists: false } }] }).sort({ tokenNumber: 1 }).lean();
     } catch (e) {
       console.warn('dbGetTokens query warning:', e.message);
     }
   }
-  return inMemoryTokens.filter(t => t.clinicId === cid).sort((a, b) => a.tokenNumber - b.tokenNumber);
+  return inMemoryTokens.filter(t => {
+    if (t.clinicId !== cid) return false;
+    const sDate = t.sessionDate || getTodayDateString(t.bookedAt || new Date());
+    return !targetDate || sDate === targetDate;
+  }).sort((a, b) => a.tokenNumber - b.tokenNumber);
+}
+
+const memoryCounters = new Map();
+
+async function getNextTokenNumber(clinicId, todayStr) {
+  const cid = clinicId.toUpperCase();
+  const counterKey = `${cid}_${todayStr}`;
+
+  if (isMongoReady()) {
+    try {
+      let counterDoc = await DailyCounter.findOne({ key: counterKey });
+      if (!counterDoc) {
+        const lastToken = await Token.findOne({ clinicId: cid, sessionDate: todayStr })
+          .sort({ tokenNumber: -1 })
+          .lean();
+        const initialSeq = lastToken ? lastToken.tokenNumber : 0;
+        try {
+          await DailyCounter.create({ key: counterKey, seq: initialSeq });
+        } catch (e) {
+          // Ignore potential race condition during creation
+        }
+      }
+
+      const updated = await DailyCounter.findOneAndUpdate(
+        { key: counterKey },
+        { $inc: { seq: 1 } },
+        { new: true, upsert: true }
+      );
+      return updated.seq;
+    } catch (e) {
+      console.warn('DailyCounter MongoDB atomic error, falling back:', e.message);
+      const last = await Token.findOne({ clinicId: cid, sessionDate: todayStr }).sort({ tokenNumber: -1 }).lean();
+      return last ? last.tokenNumber + 1 : 1;
+    }
+  }
+
+  if (!memoryCounters.has(counterKey)) {
+    const clinicTokensToday = inMemoryTokens.filter(t => 
+      t.clinicId === cid && 
+      (t.sessionDate || getTodayDateString(t.bookedAt || new Date())) === todayStr
+    );
+    const maxExisting = clinicTokensToday.length > 0 ? Math.max(...clinicTokensToday.map(t => t.tokenNumber || 0)) : 0;
+    memoryCounters.set(counterKey, maxExisting);
+  }
+  const nextSeq = memoryCounters.get(counterKey) + 1;
+  memoryCounters.set(counterKey, nextSeq);
+  return nextSeq;
 }
 
 async function dbCreateToken(data) {
   const cid = data.clinicId.toUpperCase();
   const dept = (data.department || 'General Medicine').trim();
   const tokenStatus = (data.status || 'waiting').toLowerCase();
+  const todayStr = getTodayDateString();
+
+  const number = await getNextTokenNumber(cid, todayStr);
+
   if (isMongoReady()) {
     try {
-      const last = await Token.findOne({ clinicId: cid }).sort({ tokenNumber: -1 }).lean();
-      const number = last ? last.tokenNumber + 1 : 1;
-      const created = await Token.create({ ...data, clinicId: cid, department: dept, tokenNumber: number, status: tokenStatus });
+      const created = await Token.create({
+        ...data,
+        clinicId: cid,
+        department: dept,
+        tokenNumber: number,
+        status: tokenStatus,
+        sessionDate: todayStr,
+        bookedAt: new Date()
+      });
       return created.toObject ? created.toObject() : created;
     } catch (e) {
       console.warn('dbCreateToken query warning:', e.message);
     }
   }
-  const clinicTokens = inMemoryTokens.filter(t => t.clinicId === cid);
-  const number = clinicTokens.length > 0 ? Math.max(...clinicTokens.map(t => t.tokenNumber)) + 1 : 1;
+
   const newToken = {
     _id: 't_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
     ...data,
@@ -416,10 +498,57 @@ async function dbCreateToken(data) {
     department: dept,
     tokenNumber: number,
     status: tokenStatus,
+    sessionDate: todayStr,
     bookedAt: new Date()
   };
   inMemoryTokens.push(newToken);
   return newToken;
+}
+
+function formatWaitTime(val) {
+  if (val === null || val === undefined || isNaN(Number(val))) return 0;
+  return Number(Number(val).toFixed(1));
+}
+
+async function calculateEstimatedWaitTime(clinicId, department, tokenNumber, targetTokenObj = null) {
+  const cid = (clinicId || '').toUpperCase();
+  const dept = (department || 'General Medicine').trim();
+  const clinic = await dbGetClinic(cid);
+  const avgTime = (clinic && clinic.averageTreatmentTime) ? Number(clinic.averageTreatmentTime) : 5;
+  const todayStr = getTodayDateString();
+
+  const tokensToday = await dbGetTokens(cid, todayStr);
+  const deptTokens = tokensToday.filter(t => (t.department || 'General Medicine').trim().toLowerCase() === dept.toLowerCase());
+
+  if (targetTokenObj) {
+    const st = (targetTokenObj.status || '').toLowerCase();
+    if (st === 'serving') {
+      return { estimatedWaitMinutes: 0, patientsAhead: 0, currentServingToken: targetTokenObj.tokenNumber, averageTime: avgTime };
+    }
+    if (['completed', 'cancelled', 'no_show'].includes(st)) {
+      return { estimatedWaitMinutes: 0, patientsAhead: 0, currentServingToken: null, averageTime: avgTime };
+    }
+  }
+
+  const servingToken = deptTokens.find(t => ['serving', 'Serving'].includes(t.status));
+  let remainingServingTime = 0;
+  let servingTokenNumber = servingToken ? servingToken.tokenNumber : null;
+
+  if (servingToken) {
+    const startedAt = servingToken.consultationStartedAt || servingToken.bookedAt || new Date();
+    const elapsedTime = Math.max(0, Math.floor((new Date().getTime() - new Date(startedAt).getTime()) / 60000));
+    remainingServingTime = Math.max(0, avgTime - elapsedTime);
+  }
+
+  const patientsAhead = deptTokens.filter(t => ['waiting', 'Waiting'].includes(t.status) && t.tokenNumber < tokenNumber).length;
+  const estimatedWaitMinutes = (patientsAhead * avgTime) + remainingServingTime;
+
+  return {
+    estimatedWaitMinutes: formatWaitTime(estimatedWaitMinutes),
+    patientsAhead,
+    currentServingToken: servingTokenNumber,
+    averageTime: avgTime
+  };
 }
 
 async function findTokenByIdOrNumber(tokenId, clinicId) {
@@ -579,7 +708,7 @@ async function enrichClinic(c) {
     completedCount: completed,
     cancelledCount: cancelled,
     noShowCount: noShow,
-    estimatedWait: waiting * 5
+    estimatedWait: formatWaitTime(waiting * 5)
   };
 }
 
@@ -696,6 +825,51 @@ app.get('/api/clinics/:clinicId/queue', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+async function completeTokenAndSmoothAverage(tokenDoc) {
+  if (!tokenDoc) return;
+  const completedAt = new Date();
+  const startedAt = tokenDoc.consultationStartedAt || tokenDoc.bookedAt || completedAt;
+  const durationMs = completedAt.getTime() - new Date(startedAt).getTime();
+  const actualDurationMinutes = Math.max(1, Math.round(durationMs / 60000));
+
+  const updates = {
+    status: 'completed',
+    completedAt: completedAt,
+    consultationCompletedAt: completedAt,
+    consultationDuration: actualDurationMinutes
+  };
+
+  const cid = (tokenDoc.clinicId || '').toUpperCase();
+  const clinic = await dbGetClinic(cid);
+
+  if (clinic) {
+    const oldAvg = (clinic.averageTreatmentTime !== undefined) ? Number(clinic.averageTreatmentTime) : 5;
+    const newAvg = Math.round(((oldAvg * 3) + actualDurationMinutes) / 4 * 10) / 10;
+
+    if (isMongoReady()) {
+      try {
+        await Clinic.findOneAndUpdate({ clinicId: cid }, { $set: { averageTreatmentTime: newAvg } });
+      } catch (e) { console.warn('updateAvg DB warning:', e.message); }
+    }
+    const memC = inMemoryClinics.find(c => c.clinicId === cid);
+    if (memC) memC.averageTreatmentTime = newAvg;
+  }
+
+  if (isMongoReady() && tokenDoc.save) {
+    Object.assign(tokenDoc, updates);
+    await tokenDoc.save();
+  } else if (isMongoReady()) {
+    try {
+      await Token.updateOne({ _id: tokenDoc._id }, { $set: updates });
+    } catch (e) { console.warn('completeToken DB warning:', e.message); }
+  }
+
+  const memT = inMemoryTokens.find(t => String(t._id || t.id) === String(tokenDoc._id || tokenDoc.id));
+  if (memT) {
+    Object.assign(memT, updates);
+  }
+}
+
 // Get single token details for patient tracking
 app.get('/api/tokens/:tokenId', async (req, res) => {
   try {
@@ -706,22 +880,17 @@ app.get('/api/tokens/:tokenId', async (req, res) => {
 
     const obj = tokenDoc.toObject ? tokenDoc.toObject() : tokenDoc;
     const clinic = await dbGetClinic(obj.clinicId);
-    const allTokens = await dbGetTokens(obj.clinicId);
-
-    const dept = (obj.department || 'General Medicine').trim().toLowerCase();
-    const deptTokens = allTokens.filter(t => (t.department || 'General Medicine').trim().toLowerCase() === dept);
-
-    const servingTokenDoc = deptTokens.find(t => ['serving', 'Serving'].includes(t.status));
-    const servingToken = servingTokenDoc ? servingTokenDoc.tokenNumber : 0;
-    const waitingBefore = deptTokens.filter(t => ['waiting', 'Waiting'].includes(t.status) && t.tokenNumber < obj.tokenNumber).length;
+    
+    const waitInfo = await calculateEstimatedWaitTime(obj.clinicId, obj.department, obj.tokenNumber, obj);
 
     res.json({
       token: obj,
       clinicName: clinic ? clinic.clinicName : obj.clinicId,
       doctorName: clinic ? clinic.doctorName : '',
-      servingToken,
-      patientsAhead: waitingBefore,
-      estimatedWaitMinutes: waitingBefore * 5
+      servingToken: waitInfo.currentServingToken || 0,
+      patientsAhead: waitInfo.patientsAhead,
+      estimatedWaitMinutes: waitInfo.estimatedWaitMinutes,
+      averageTreatmentTime: waitInfo.averageTime
     });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -753,8 +922,15 @@ app.post('/api/tokens', async (req, res) => {
       department: dept,
       status: 'waiting'
     });
+
+    const waitInfo = await calculateEstimatedWaitTime(cid, dept, token.tokenNumber, token);
+
     await emitClinicUpdate(cid);
-    res.status(201).json(token);
+    res.status(201).json({
+      ...token,
+      estimatedWaitMinutes: waitInfo.estimatedWaitMinutes,
+      patientsAhead: waitInfo.patientsAhead
+    });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -790,17 +966,85 @@ app.put('/api/tokens/:tokenId/status', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: `Invalid state transition from '${currentStatus}' to '${newStatus}'` });
     }
 
-    if (isMongoReady() && tokenDoc.save) {
-      tokenDoc.status = newStatus;
-      if (newStatus === 'completed') tokenDoc.completedAt = new Date();
-      await tokenDoc.save();
+    if (newStatus === 'serving') {
+      tokenDoc.status = 'serving';
+      tokenDoc.consultationStartedAt = new Date();
+      if (isMongoReady() && tokenDoc.save) await tokenDoc.save();
+    } else if (newStatus === 'completed') {
+      await completeTokenAndSmoothAverage(tokenDoc);
     } else {
       tokenDoc.status = newStatus;
-      if (newStatus === 'completed') tokenDoc.completedAt = new Date();
+      if (isMongoReady() && tokenDoc.save) await tokenDoc.save();
     }
 
     await emitClinicUpdate(cid);
     res.json(tokenDoc);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Update clinic average treatment time (Clinic Admin box control)
+app.put('/api/clinics/:clinicId/average-time', authMiddleware, requireClinicAccess, async (req, res) => {
+  try {
+    const cid = req.params.clinicId.toUpperCase();
+    const { averageTreatmentTime } = req.body;
+    const val = Number(averageTreatmentTime);
+
+    if (isNaN(val) || val <= 0 || val > 120) {
+      return res.status(400).json({ error: 'Average treatment time must be a valid number between 1 and 120 minutes' });
+    }
+
+    if (isMongoReady()) {
+      await Clinic.findOneAndUpdate({ clinicId: cid }, { $set: { averageTreatmentTime: val } });
+    }
+    const c = inMemoryClinics.find(x => x.clinicId === cid);
+    if (c) c.averageTreatmentTime = val;
+
+    await emitClinicUpdate(cid);
+    res.json({ message: 'Average treatment time updated successfully', averageTreatmentTime: val });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Get clinic daily patient history
+app.get('/api/clinics/:clinicId/history', authMiddleware, requireClinicAccess, async (req, res) => {
+  try {
+    const cid = req.params.clinicId.toUpperCase();
+    let tokens = [];
+
+    if (isMongoReady()) {
+      tokens = await Token.find({ clinicId: cid, status: { $in: ['completed', 'Completed'] } }).sort({ bookedAt: -1 }).lean();
+    } else {
+      tokens = inMemoryTokens.filter(t => t.clinicId === cid && ['completed', 'Completed'].includes(t.status)).sort((a, b) => new Date(b.bookedAt) - new Date(a.bookedAt));
+    }
+
+    const grouped = {};
+    for (const t of tokens) {
+      const dStr = t.sessionDate || getTodayDateString(t.completedAt || t.bookedAt);
+      if (!grouped[dStr]) {
+        grouped[dStr] = [];
+      }
+      grouped[dStr].push({
+        _id: t._id || t.id,
+        tokenNumber: t.tokenNumber,
+        name: t.name,
+        phone: t.phone,
+        age: t.age,
+        department: t.department || 'General Medicine',
+        clinicId: t.clinicId,
+        status: t.status,
+        sessionDate: dStr,
+        bookedAt: t.bookedAt,
+        consultationStartedAt: t.consultationStartedAt,
+        consultationCompletedAt: t.consultationCompletedAt || t.completedAt,
+        consultationDuration: t.consultationDuration || 5
+      });
+    }
+
+    const history = Object.keys(grouped).sort((a, b) => b.localeCompare(a)).map(date => ({
+      date,
+      patients: grouped[date]
+    }));
+
+    res.json(history);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -1046,23 +1290,34 @@ app.post('/api/clinics/:clinicId/next', authMiddleware, requireClinicAccess, asy
     if (!clinic) return res.status(404).json({ error: 'Clinic not found' });
 
     const deptFilter = department ? String(department).trim() : null;
+    const todayStr = getTodayDateString();
 
     if (isMongoReady()) {
       try {
         const servingQuery = { clinicId: cid, status: { $in: ['Serving', 'serving'] } };
-        const waitingQuery = { clinicId: cid, status: { $in: ['Waiting', 'waiting'] } };
+        const waitingQuery = { clinicId: cid, status: { $in: ['Waiting', 'waiting'] }, sessionDate: todayStr };
         if (deptFilter) {
           servingQuery.department = deptFilter;
           waitingQuery.department = deptFilter;
         }
 
-        await Token.findOneAndUpdate(servingQuery, { $set: { status: 'completed', completedAt: new Date() } });
-        const next = await Token.findOneAndUpdate(waitingQuery, { $set: { status: 'serving' } }, { sort: { tokenNumber: 1 }, returnDocument: 'after' }).lean();
+        let currentServingDoc = await Token.findOne(servingQuery);
+        if (currentServingDoc) {
+          await completeTokenAndSmoothAverage(currentServingDoc);
+        }
+
+        const now = new Date();
+        const next = await Token.findOneAndUpdate(
+          waitingQuery,
+          { $set: { status: 'serving', consultationStartedAt: now } },
+          { sort: { tokenNumber: 1 }, returnDocument: 'after' }
+        ).lean();
+
         let newCurrentToken = clinic.currentToken || 0;
         if (next) {
           newCurrentToken = next.tokenNumber;
         } else {
-          const highestToken = await Token.findOne({ clinicId: cid }).sort({ tokenNumber: -1 }).lean();
+          const highestToken = await Token.findOne({ clinicId: cid, sessionDate: todayStr }).sort({ tokenNumber: -1 }).lean();
           if (highestToken) newCurrentToken = highestToken.tokenNumber;
         }
         await Clinic.findOneAndUpdate({ clinicId: cid }, { $set: { currentToken: newCurrentToken } });
@@ -1074,16 +1329,16 @@ app.post('/api/clinics/:clinicId/next', authMiddleware, requireClinicAccess, asy
     // In-memory update
     const servingToken = inMemoryTokens.find(t => t.clinicId === cid && (!deptFilter || t.department === deptFilter) && ['Serving', 'serving'].includes(t.status));
     if (servingToken) {
-      servingToken.status = 'completed';
-      servingToken.completedAt = new Date();
+      await completeTokenAndSmoothAverage(servingToken);
     }
 
-    const nextToken = inMemoryTokens.find(t => t.clinicId === cid && (!deptFilter || t.department === deptFilter) && ['Waiting', 'waiting'].includes(t.status));
+    const nextToken = inMemoryTokens.find(t => t.clinicId === cid && (!deptFilter || t.department === deptFilter) && (t.sessionDate || getTodayDateString(t.bookedAt)) === todayStr && ['Waiting', 'waiting'].includes(t.status));
     if (nextToken) {
       nextToken.status = 'serving';
+      nextToken.consultationStartedAt = new Date();
       clinic.currentToken = nextToken.tokenNumber;
     } else {
-      const clinicTokens = inMemoryTokens.filter(t => t.clinicId === cid);
+      const clinicTokens = inMemoryTokens.filter(t => t.clinicId === cid && (t.sessionDate || getTodayDateString(t.bookedAt)) === todayStr);
       if (clinicTokens.length > 0) {
         clinic.currentToken = Math.max(...clinicTokens.map(t => t.tokenNumber));
       }
@@ -1101,10 +1356,14 @@ app.post('/api/clinics/:clinicId/reset', authMiddleware, requireClinicAccess, as
     if (isMongoReady()) {
       try {
         await Token.deleteMany({ clinicId: cid });
+        await DailyCounter.deleteMany({ key: new RegExp(`^${cid}_`) });
         await Clinic.findOneAndUpdate({ clinicId: cid }, { currentToken: 0 });
       } catch (e) { console.warn('resetQueue DB warning:', e.message); }
     }
     inMemoryTokens = inMemoryTokens.filter(t => t.clinicId !== cid);
+    for (const k of memoryCounters.keys()) {
+      if (k.startsWith(`${cid}_`)) memoryCounters.delete(k);
+    }
     const c = inMemoryClinics.find(x => x.clinicId === cid);
     if (c) c.currentToken = 0;
     await emitClinicUpdate(cid);

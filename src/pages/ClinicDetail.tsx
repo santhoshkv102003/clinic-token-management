@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { fetchClinicQueue, bookToken as apiBookToken } from "@/services/api";
 import { joinClinicRoom, leaveClinicRoom, onQueueUpdate } from "@/services/socket";
+import { formatWaitTime } from "@/lib/utils";
 
 const DEPARTMENTS = [
   "General Medicine",
@@ -264,7 +265,7 @@ export default function ClinicDetail() {
               <Clock className="w-7 h-7 stroke-[2.2]" />
             </div>
             <div className="text-4xl sm:text-5xl font-extrabold text-[#f59e0b] mb-1">
-              {estimatedWaitMinutes}
+              {formatWaitTime(estimatedWaitMinutes)}
             </div>
             <div className="text-base sm:text-lg font-bold text-slate-800">
               Minutes

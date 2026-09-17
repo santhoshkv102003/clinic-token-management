@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Clock, User, Stethoscope } from "lucide-react";
 import { useQueue } from "../QueueContext";
+import { formatWaitTime } from "@/lib/utils";
 
 export function TokenBooking({ onBooked }: { onBooked?: () => void }) {
   const [name, setName] = useState("");
@@ -113,7 +114,7 @@ export function TokenBooking({ onBooked }: { onBooked?: () => void }) {
           <div className="flex items-center gap-2 p-3 bg-warning/10 rounded-lg border border-warning/20">
             <Clock className="w-4 h-4 text-warning" />
             <span className="text-sm">
-              Estimated wait: <span className="font-semibold">{estimatedWaitTime} mins</span>
+              Estimated wait: <span className="font-semibold">{formatWaitTime(estimatedWaitTime)} mins</span>
             </span>
           </div>
         )}

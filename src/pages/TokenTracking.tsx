@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Ticket, Clock, User, Building2, Stethoscope, ArrowLeft, RefreshCw, Bell } from "lucide-react";
 import { fetchTokenDetails } from "@/services/api";
 import { joinClinicRoom, leaveClinicRoom, onQueueUpdate } from "@/services/socket";
+import { formatWaitTime } from "@/lib/utils";
 
 export default function TokenTracking() {
   const { tokenId } = useParams<{ tokenId: string }>();
@@ -207,7 +208,7 @@ export default function TokenTracking() {
                   <Clock className="w-4 h-4 text-primary" /> Estimated Wait
                 </span>
                 <span className="font-semibold text-amber-600 dark:text-amber-400">
-                  {statusLower === 'serving' ? 'Now Serving' : statusLower === 'waiting' ? `~${estimatedWaitMinutes} mins` : 'Ended'}
+                  {statusLower === 'serving' ? 'Now Serving' : statusLower === 'waiting' ? `~${formatWaitTime(estimatedWaitMinutes)} mins` : 'Ended'}
                 </span>
               </div>
             </div>

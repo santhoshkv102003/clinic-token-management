@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Users, Clock, MapPin, Phone, User, Calendar } from "lucide-react";
 import { useQueue } from "../QueueContext";
+import { formatWaitTime } from "@/lib/utils";
 
 interface UpcomingPatientsListProps {
   onBack: () => void;
@@ -121,7 +122,7 @@ export function UpcomingPatientsList({ onBack }: UpcomingPatientsListProps) {
                           <Clock className="w-4 h-4 text-warning" />
                           <div className="text-right">
                             <div className="font-semibold text-lg">
-                              {isCurrent ? "Now" : `${token.estimatedWaitTime} min`}
+                              {isCurrent ? "Now" : `${formatWaitTime(token.estimatedWaitTime)} min`}
                             </div>
                             <div className="text-xs text-muted-foreground">
                               {isCurrent ? "Being served" : "Estimated wait"}

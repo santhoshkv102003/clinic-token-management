@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Clock } from "lucide-react";
 import { useQueue } from "../QueueContext";
+import { formatWaitTime } from "@/lib/utils";
 
 export function QueueDisplay() {
   const { currentNumber, tokens } = useQueue();
@@ -61,7 +62,7 @@ export function QueueDisplay() {
                 <Clock className="w-7 h-7 stroke-[2.2]" />
               </div>
               <div className="text-4xl sm:text-5xl font-extrabold text-[#f59e0b] mb-1">
-                {estimatedWait}
+                {formatWaitTime(estimatedWait)}
               </div>
               <div className="text-base sm:text-lg font-bold text-slate-800">
                 Minutes

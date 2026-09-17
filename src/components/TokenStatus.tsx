@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Ticket, Clock, MapPin, Phone, ArrowLeft } from "lucide-react";
+import { formatWaitTime } from "@/lib/utils";
 
 interface TokenStatusProps {
   token: any;
@@ -92,7 +93,7 @@ export function TokenStatus({ token, currentNumber, onBack }: TokenStatusProps) 
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Clock className="w-4 h-4 text-warning" />
               </div>
-              <div className="text-2xl font-bold text-warning">{estimatedWaitTime}</div>
+              <div className="text-2xl font-bold text-warning">{formatWaitTime(estimatedWaitTime)}</div>
               <div className="text-sm text-muted-foreground">Minutes</div>
             </div>
           </div>
