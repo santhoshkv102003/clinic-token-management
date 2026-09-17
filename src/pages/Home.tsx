@@ -461,15 +461,6 @@ export default function Home() {
                   🔥 Most Active Clinics
                 </h2>
               </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  className="text-xs text-slate-600 hover:text-slate-900 bg-white/70 hover:bg-white rounded-lg px-2.5 py-1 font-semibold flex items-center gap-1 transition"
-                  onClick={loadHome}
-                >
-                  <RefreshCw className="w-3.5 h-3.5" /> Refresh
-                </button>
-              </div>
             </div>
 
             {/* ── Clinics Horizontal Rows Container ── */}
