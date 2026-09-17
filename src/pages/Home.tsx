@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Heart, Search, Shield, RefreshCw, X, Building2, DoorOpen,
-  DoorClosed, Plus, LogIn, LogOut, Stethoscope, ArrowRight, ArrowLeft, Check
+  DoorClosed, Plus, ArrowRight, ArrowLeft
 } from "lucide-react";
 import { fetchHomeSummary, fetchTop3Clinics, searchClinics, createClinic } from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
@@ -18,7 +18,7 @@ import { useAuth } from "@/context/AuthContext";
 export default function Home() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, token, login, logout, isSuperAdmin } = useAuth();
+  const { token, login } = useAuth();
 
   const [top3, setTop3] = useState<any[]>([]);
   const [allClinicsAlphabetical, setAllClinicsAlphabetical] = useState<any[]>([]);
@@ -102,13 +102,12 @@ export default function Home() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // When search box is touched or focused, show results in alphabetical order
+  // Search filtering state for the left search dropdown
   const isBrowsingAll = isSearchFocused && !search.trim();
   const isFiltering = search.trim().length > 0;
-  const showAlphabeticalList = isBrowsingAll || isFiltering;
-  const displayCards = showAlphabeticalList
-    ? (isBrowsingAll ? allClinicsAlphabetical : results)
-    : top3;
+
+  // The right side section ALWAYS shows the Top 3 Most Active Clinics
+  const displayCards = top3;
 
   // Handle Admin Login
   const handleAdminLogin = async (e: React.FormEvent) => {
@@ -118,7 +117,6 @@ export default function Home() {
       await login(adminEmail.trim(), adminPassword);
       setShowAdminLoginModal(false);
       toast({ title: "✅ Logged in as Admin" });
-      // Automatically open Add Clinic modal for Super Admin
       setTimeout(() => {
         setShowAddClinicModal(true);
       }, 300);
@@ -160,7 +158,6 @@ export default function Home() {
         description: `${clinicName} (${doctorName}) is now live.`,
       });
 
-      // Reset form
       setClinicName("");
       setDoctorName("");
       setClinicPhone("");
@@ -168,7 +165,6 @@ export default function Home() {
       setClinicStatus("Open");
       setShowAddClinicModal(false);
 
-      // Reload Home
       loadHome();
     } catch (err: any) {
       toast({ title: err.message || "Failed to add clinic", variant: "destructive" });
@@ -189,24 +185,34 @@ export default function Home() {
       }}
     >
       {/* ── Header ── */}
-      <header className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm w-full overflow-hidden">
-        <div className="container mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 sm:gap-3 cursor-pointer shrink-0" onClick={() => { setSearch(""); setIsSearchFocused(false); }}>
-            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[#00a6d6]/15 rounded-xl flex items-center justify-center shadow-inner shrink-0">
-              <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-[#00a6d6]" />
+      <header className="bg-white/70 backdrop-blur-md sticky top-0 z-50 shadow-2xs border-b border-white/60 w-full">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-10 py-3.5 flex items-center justify-between gap-4">
+          <div
+            className="flex items-center gap-3 cursor-pointer shrink-0"
+            onClick={() => {
+              setSearch("");
+              setIsSearchFocused(false);
+            }}
+          >
+            <div className="w-10 h-10 bg-[#00a6d6]/15 rounded-xl flex items-center justify-center shadow-inner shrink-0">
+              <Heart className="w-5 h-5 text-[#00a6d6]" />
             </div>
             <div>
-              <h1 className="text-lg sm:text-xl font-black text-slate-800 leading-tight">ClinicQueue</h1>
-              <p className="hidden sm:block text-xs text-slate-500 font-medium">Smart Token Management</p>
+              <h1 className="text-lg sm:text-xl font-extrabold text-slate-800 leading-tight">
+                ClinicQueue
+              </h1>
+              <p className="text-[11px] sm:text-xs text-slate-500 font-semibold">
+                Smart Token Management
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => navigate("/")}
-              className="bg-white/90 hover:bg-white text-slate-800 rounded-xl shadow-sm border border-slate-200 text-xs sm:text-sm font-bold px-3 sm:px-4 py-2"
+              className="bg-white/90 hover:bg-white text-slate-800 rounded-full shadow-xs border border-slate-200 text-xs sm:text-sm font-bold px-4 py-2"
             >
               <ArrowLeft className="w-4 h-4 mr-1.5 text-[#00a6d6]" />
               Portal Selection
@@ -215,200 +221,259 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-5xl flex-1 w-full overflow-x-hidden">
-        {/* ── 3 Summary Stat Cards ── */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-3.5 mb-6 sm:mb-8 max-w-lg mx-auto">
-          <div className="text-center p-3 sm:p-4 bg-[#e6f4f8]/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-md transition hover:-translate-y-0.5">
-            <div className="flex items-center justify-center mb-1 text-[#00a6d6]">
-              <Building2 className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            {loading ? (
-              <div className="h-7 w-10 bg-slate-200 rounded animate-pulse mx-auto mb-1" />
-            ) : (
-              <div className="text-2xl sm:text-3xl font-extrabold text-[#00a6d6]">{summary.totalClinics}</div>
-            )}
-            <div className="text-[11px] sm:text-xs text-slate-600 font-bold mt-0.5 leading-tight">Total Clinics</div>
-          </div>
-
-          <div className="text-center p-3 sm:p-4 bg-[#e6f4f8]/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-md transition hover:-translate-y-0.5">
-            <div className="flex items-center justify-center mb-1 text-[#0d9488]">
-              <DoorOpen className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            {loading ? (
-              <div className="h-7 w-10 bg-slate-200 rounded animate-pulse mx-auto mb-1" />
-            ) : (
-              <div className="text-2xl sm:text-3xl font-extrabold text-[#0d9488]">{summary.openClinics}</div>
-            )}
-            <div className="text-[11px] sm:text-xs text-slate-600 font-bold mt-0.5 leading-tight">Open Now</div>
-          </div>
-
-          <div className="text-center p-3 sm:p-4 bg-[#e6f4f8]/90 backdrop-blur-md rounded-2xl border border-white/80 shadow-md transition hover:-translate-y-0.5">
-            <div className="flex items-center justify-center mb-1 text-[#ef4444]">
-              <DoorClosed className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            {loading ? (
-              <div className="h-7 w-10 bg-slate-200 rounded animate-pulse mx-auto mb-1" />
-            ) : (
-              <div className="text-2xl sm:text-3xl font-extrabold text-[#ef4444]">{summary.closedClinics}</div>
-            )}
-            <div className="text-[11px] sm:text-xs text-slate-600 font-bold mt-0.5 leading-tight">Closed</div>
-          </div>
-        </div>
-
-        {/* ── Search Bar with Alphabetical Auto-display on Touch/Focus ── */}
-        <div className="max-w-xl mx-auto mb-8 relative" ref={searchBoxRef}>
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#00a6d6]" />
-            <Input
-              className="pl-11 pr-11 bg-white/95 backdrop-blur-md border-2 border-[#00a6d6]/30 focus:border-[#00a6d6] focus:ring-4 focus:ring-[#00a6d6]/20 h-13 text-base rounded-2xl shadow-lg transition-all"
-              placeholder="Search clinic or doctor name ...."
-              value={search}
-              onFocus={() => setIsSearchFocused(true)}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            {search && (
-              <button
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 rounded-full hover:bg-slate-200/70 p-1 transition"
-                onClick={() => setSearch("")}
-                title="Clear search"
-              >
-                <X className="w-4 h-4 text-slate-500" />
-              </button>
-            )}
-          </div>
-
-          {/* ── Dropdown Suggestions when Search is Active / Focused ── */}
-          {isSearchFocused && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-md rounded-2xl border border-white/80 shadow-2xl z-40 overflow-hidden max-h-72 overflow-y-auto divide-y divide-slate-100">
-              <div className="px-4 py-2 bg-slate-50/90 text-xs font-bold text-slate-500 flex items-center justify-between uppercase tracking-wider">
-                <span>
-                  {isFiltering ? `Matching "${search}" (${results.length})` : `All Clinics (Alphabetical A-Z: ${allClinicsAlphabetical.length})`}
+      {/* ── Main Content Container ── */}
+      <main className="container mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-10 max-w-7xl flex-1 flex flex-col justify-between">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start my-auto">
+          {/* ── Left Hero & Search Column (col-span-5) ── */}
+          <div className="lg:col-span-5 flex flex-col justify-between py-2 sm:py-4">
+            <div>
+              {/* Tagline */}
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-6 h-[3px] bg-[#00a6d6] rounded-full" />
+                <span className="text-xs sm:text-sm font-bold text-slate-600 tracking-wide">
+                  Welcome Back
                 </span>
-                <span className="text-[10px] text-[#00a6d6] font-semibold">Click to open</span>
               </div>
 
-              {(isFiltering ? results : allClinicsAlphabetical).length === 0 ? (
-                <div className="p-4 text-center text-sm text-slate-500">
-                  No clinic starting with or matching "{search}"
+              {/* Title */}
+              <h1 className="text-4xl sm:text-5xl font-extrabold text-[#1a2b4c] leading-[1.12] mb-4 tracking-tight">
+                Better Care<br />Starts Here
+              </h1>
+
+              {/* Subtitle */}
+              <p className="text-slate-600 text-sm sm:text-base font-medium mb-8 max-w-md leading-relaxed">
+                Manage clinics, doctors and patient queues efficiently
+              </p>
+
+              {/* Search Box */}
+              <div className="relative w-full max-w-md mb-8" ref={searchBoxRef}>
+                <div className="relative flex items-center">
+                  <Search className="absolute left-4 w-4 h-4 text-[#00a6d6] pointer-events-none" />
+                  <Input
+                    className="w-full pl-11 pr-10 py-3.5 h-12 bg-white/95 backdrop-blur-md rounded-full border border-slate-200 shadow-md text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00a6d6]/30 transition-all"
+                    placeholder="Search clinic or doctor name ...."
+                    value={search}
+                    onFocus={() => setIsSearchFocused(true)}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                  {search && (
+                    <button
+                      className="absolute right-3.5 rounded-full hover:bg-slate-100 p-1 transition text-slate-400 hover:text-slate-600"
+                      onClick={() => setSearch("")}
+                      title="Clear search"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
-              ) : (
-                (isFiltering ? results : allClinicsAlphabetical).map((c) => (
-                  <div
-                    key={c.clinicId}
-                    onClick={() => navigate(`/clinic/${c.clinicId}`)}
-                    className="px-4 py-3 hover:bg-[#e6f4f8]/70 cursor-pointer flex items-center justify-between transition group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[#00a6d6]/10 text-[#00a6d6] flex items-center justify-center font-bold text-xs group-hover:bg-[#00a6d6] group-hover:text-white transition">
-                        {c.clinicName.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <div className="font-bold text-slate-800 text-sm group-hover:text-[#00a6d6] transition">
-                          {c.clinicName}
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          {c.doctorName} • {c.clinicId}
-                        </div>
-                      </div>
+
+                {/* Dropdown Suggestions */}
+                {isSearchFocused && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-100 shadow-2xl z-40 overflow-hidden max-h-72 overflow-y-auto divide-y divide-slate-100">
+                    <div className="px-4 py-2 bg-slate-50/90 text-xs font-bold text-slate-500 flex items-center justify-between uppercase tracking-wider">
+                      <span>
+                        {isFiltering
+                          ? `Matching "${search}" (${results.length})`
+                          : `All Clinics (Alphabetical A-Z: ${allClinicsAlphabetical.length})`}
+                      </span>
+                      <span className="text-[10px] text-[#00a6d6] font-semibold">
+                        Click to open
+                      </span>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <Badge variant={c.status === "Open" ? "default" : "secondary"} className={`text-[10px] ${c.status === "Open" ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100" : ""}`}>
-                        {c.status}
-                      </Badge>
-                      <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#00a6d6] group-hover:translate-x-0.5 transition" />
-                    </div>
+                    {(isFiltering ? results : allClinicsAlphabetical).length === 0 ? (
+                      <div className="p-4 text-center text-sm text-slate-500">
+                        No clinic starting with or matching "{search}"
+                      </div>
+                    ) : (
+                      (isFiltering ? results : allClinicsAlphabetical).map((c) => (
+                        <div
+                          key={c.clinicId}
+                          onClick={() => navigate(`/clinic/${c.clinicId}`)}
+                          className="px-4 py-3 hover:bg-[#e6f4f8]/70 cursor-pointer flex items-center justify-between transition group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-[#00a6d6]/10 text-[#00a6d6] flex items-center justify-center font-bold text-xs group-hover:bg-[#00a6d6] group-hover:text-white transition">
+                              {c.clinicName.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="font-bold text-slate-800 text-sm group-hover:text-[#00a6d6] transition">
+                                {c.clinicName}
+                              </div>
+                              <div className="text-xs text-slate-500">
+                                {c.doctorName} • {c.clinicId}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Badge
+                              variant={c.status === "Open" ? "default" : "secondary"}
+                              className={`text-[10px] ${
+                                c.status === "Open"
+                                  ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100"
+                                  : ""
+                              }`}
+                            >
+                              {c.status}
+                            </Badge>
+                            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#00a6d6] group-hover:translate-x-0.5 transition" />
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
+                )}
+              </div>
+            </div>
+
+            {/* Quote Box at bottom left */}
+            <div className="pt-6 border-t border-slate-300/40 max-w-xs mt-6">
+              <p className="text-slate-600 text-xs sm:text-sm font-medium italic leading-relaxed">
+                "Connecting Healthcare, Creating Healthier Communities."
+              </p>
+              <div className="w-8 h-[2px] bg-[#00a6d6] mt-2 rounded-full" />
+            </div>
+          </div>
+
+          {/* ── Right Column (col-span-7) ── */}
+          <div className="lg:col-span-7 flex flex-col gap-5">
+            {/* ── Top 3 Stat Cards Row ── */}
+            <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
+              {/* Total Clinics */}
+              <div className="bg-white/70 backdrop-blur-md rounded-2xl p-3 sm:p-4 border border-white/80 shadow-xs flex items-center gap-2.5 sm:gap-3.5">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#d0f0fd] text-[#00a6d6] flex items-center justify-center shrink-0 shadow-2xs">
+                  <Building2 className="w-5 h-5 sm:w-6 sm:h-6" />
+                </div>
+                <div>
+                  {loading ? (
+                    <div className="h-6 w-8 bg-slate-200 animate-pulse rounded" />
+                  ) : (
+                    <div className="text-2xl sm:text-3xl font-extrabold text-[#00a6d6] leading-none">
+                      {summary.totalClinics}
+                    </div>
+                  )}
+                  <div className="text-[10px] sm:text-xs text-slate-600 font-bold mt-1 leading-tight">
+                    Total Clinics
+                  </div>
+                </div>
+              </div>
+
+              {/* Open Now */}
+              <div className="bg-white/70 backdrop-blur-md rounded-2xl p-3 sm:p-4 border border-white/80 shadow-xs flex items-center gap-2.5 sm:gap-3.5">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#d1fae5] text-[#059669] flex items-center justify-center shrink-0 shadow-2xs">
+                  <DoorOpen className="w-5 h-5 sm:w-6 sm:h-6" />
+                </div>
+                <div>
+                  {loading ? (
+                    <div className="h-6 w-8 bg-slate-200 animate-pulse rounded" />
+                  ) : (
+                    <div className="text-2xl sm:text-3xl font-extrabold text-[#059669] leading-none">
+                      {summary.openClinics}
+                    </div>
+                  )}
+                  <div className="text-[10px] sm:text-xs text-slate-600 font-bold mt-1 leading-tight">
+                    Open Now
+                  </div>
+                </div>
+              </div>
+
+              {/* Closed */}
+              <div className="bg-white/70 backdrop-blur-md rounded-2xl p-3 sm:p-4 border border-white/80 shadow-xs flex items-center gap-2.5 sm:gap-3.5">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#fee2e2] text-[#ef4444] flex items-center justify-center shrink-0 shadow-2xs">
+                  <DoorClosed className="w-5 h-5 sm:w-6 sm:h-6" />
+                </div>
+                <div>
+                  {loading ? (
+                    <div className="h-6 w-8 bg-slate-200 animate-pulse rounded" />
+                  ) : (
+                    <div className="text-2xl sm:text-3xl font-extrabold text-[#ef4444] leading-none">
+                      {summary.closedClinics}
+                    </div>
+                  )}
+                  <div className="text-[10px] sm:text-xs text-slate-600 font-bold mt-1 leading-tight">
+                    Closed
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="p-3 bg-red-100/90 border border-red-200 rounded-xl text-center">
+                <p className="text-red-700 text-xs font-semibold mb-2">{error}</p>
+                <Button size="sm" variant="outline" onClick={loadHome} className="rounded-lg text-xs">
+                  <RefreshCw className="w-3.5 h-3.5 mr-1" /> Retry
+                </Button>
+              </div>
+            )}
+
+            {/* ── Section Title Bar ── */}
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center gap-2">
+                <h2 className="text-base sm:text-lg font-extrabold text-slate-800 flex items-center gap-2">
+                  🔥 Most Active Clinics
+                </h2>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  className="text-xs text-slate-600 hover:text-slate-900 bg-white/70 hover:bg-white rounded-lg px-2.5 py-1 font-semibold flex items-center gap-1 transition"
+                  onClick={loadHome}
+                >
+                  <RefreshCw className="w-3.5 h-3.5" /> Refresh
+                </button>
+              </div>
+            </div>
+
+            {/* ── Clinics Horizontal Rows Container ── */}
+            <div className="space-y-3">
+              {loading ? (
+                [1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="h-20 bg-white/40 rounded-2xl animate-pulse border border-white/60"
+                  />
+                ))
+              ) : displayCards.length === 0 ? (
+                <div className="text-center py-12 bg-white/60 backdrop-blur-md rounded-2xl border border-white/60 shadow-xs">
+                  <Search className="w-10 h-10 mx-auto mb-2 text-slate-400" />
+                  <p className="text-slate-800 text-base font-bold">
+                    No clinics found matching "{search}"
+                  </p>
+                  <p className="text-slate-500 text-xs mt-1">
+                    Try typing another doctor or clinic name.
+                  </p>
+                </div>
+              ) : (
+                displayCards.map((clinic, idx) => (
+                  <ClinicCard key={clinic.clinicId} index={idx} {...clinic} />
                 ))
               )}
             </div>
-          )}
-        </div>
 
-        {/* ── Error message ── */}
-        {error && (
-          <div className="max-w-md mx-auto mb-6 p-4 bg-red-100/90 border border-red-200 rounded-2xl text-center shadow-sm">
-            <p className="text-red-700 text-sm font-semibold mb-3">{error}</p>
-            <Button size="sm" variant="outline" onClick={loadHome} className="rounded-xl">
-              <RefreshCw className="w-4 h-4 mr-1" /> Retry
-            </Button>
-          </div>
-        )}
-
-        {/* ── Section Heading ── */}
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-2">
-            <h2 className="text-base sm:text-lg font-bold text-slate-800 drop-shadow-sm flex items-center gap-2">
-              {showAlphabeticalList
-                ? searching
-                  ? "Searching..."
-                  : `🔤 Clinics (Alphabetical A-Z: ${displayCards.length})`
-                : "🔥 Most Active Clinics"}
-            </h2>
-            {showAlphabeticalList && (
-              <Badge className="bg-[#00a6d6] text-white text-xs font-semibold px-2 py-0.5">
-                A → Z
-              </Badge>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            {showAlphabeticalList && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs text-slate-600 bg-white/70 hover:bg-white rounded-xl"
-                onClick={() => { setSearch(""); setIsSearchFocused(false); }}
-              >
-                Reset
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-slate-700 hover:text-slate-900 bg-white/70 hover:bg-white rounded-xl text-xs"
-              onClick={loadHome}
-            >
-              <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
-            </Button>
+            {/* ── Bottom Right Decorative Graphic Tagline ── */}
+            <div className="flex items-center justify-end gap-1.5 pt-2 text-[#00a6d6]">
+              <Plus className="w-4 h-4 stroke-[3]" />
+              <span className="font-handwriting text-lg sm:text-xl font-bold italic tracking-wide text-slate-700">
+                Healthier People Brighter Tomorrows
+              </span>
+            </div>
           </div>
         </div>
-
-        {/* ── Skeleton Loading ── */}
-        {loading && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-56 bg-white/40 rounded-2xl border border-white/60 animate-pulse" />
-            ))}
-          </div>
-        )}
-
-        {/* ── Clinic Cards Grid ── */}
-        {!loading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {displayCards.map((clinic) => (
-              <ClinicCard key={clinic.clinicId} {...clinic} />
-            ))}
-          </div>
-        )}
-
-        {/* ── Empty State ── */}
-        {!loading && showAlphabeticalList && displayCards.length === 0 && !searching && (
-          <div className="text-center py-16 bg-white/60 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm max-w-md mx-auto">
-            <Search className="w-12 h-12 mx-auto mb-3 text-slate-400" />
-            <p className="text-slate-800 text-lg font-bold">No clinics found for "{search}"</p>
-            <p className="text-slate-500 text-sm mt-1">Try searching another clinic or doctor name.</p>
-          </div>
-        )}
-      </div>
-
-      {/* ── Footer ── */}
-      <footer className="text-center text-xs text-slate-500 font-medium py-6">
-        ClinicQueue Smart Token Management System
-      </footer>
+      </main>
 
       {/* ── MODAL: Admin Login ── */}
-      <Dialog open={showAdminLoginModal} onOpenChange={(open) => { setShowAdminLoginModal(open); if (open) { setAdminEmail(""); setAdminPassword(""); } }}>
+      <Dialog
+        open={showAdminLoginModal}
+        onOpenChange={(open) => {
+          setShowAdminLoginModal(open);
+          if (open) {
+            setAdminEmail("");
+            setAdminPassword("");
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-md bg-white/95 backdrop-blur-md rounded-2xl border border-white/60 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-slate-800 text-center flex items-center justify-center gap-2">
@@ -460,7 +525,7 @@ export default function Home() {
         </DialogContent>
       </Dialog>
 
-      {/* ── MODAL: Add Clinic (Clinic Name & Doctor Name) ── */}
+      {/* ── MODAL: Add Clinic ── */}
       <Dialog open={showAddClinicModal} onOpenChange={setShowAddClinicModal}>
         <DialogContent className="sm:max-w-lg bg-white/95 backdrop-blur-md rounded-2xl border border-white/60 shadow-2xl">
           <DialogHeader>
