@@ -15,38 +15,30 @@ import {
 import { fetchHomeSummary, fetchTop3Clinics, searchClinics, createClinic } from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 
-// Fast fallback defaults for brand new users on Vercel deployment
-const DEFAULT_SUMMARY = { totalClinics: 60, openClinics: 60, closedClinics: 0 };
-const DEFAULT_TOP3 = [
-  { clinicId: 'C001', clinicName: 'Dr.Santhosh Health Center', doctorName: 'Santhosh', status: 'Open', currentToken: 0, waitingCount: 0, estimatedWait: 0 },
-  { clinicId: 'C011', clinicName: 'Dr.Nalam Health Clinic', doctorName: 'Nalam', status: 'Open', currentToken: 0, waitingCount: 0, estimatedWait: 0 },
-  { clinicId: 'C021', clinicName: 'Dr.Arogya Health Centre', doctorName: 'Arogya', status: 'Open', currentToken: 0, waitingCount: 0, estimatedWait: 0 }
-];
-
 export default function Home() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { token, login } = useAuth();
 
-  // Instant Cache helpers
-  const CACHE_KEY_SUMMARY = "cq_home_summary_cache";
-  const CACHE_KEY_TOP3 = "cq_home_top3_cache";
+  // Session Cache helpers for real live data
+  const CACHE_KEY_SUMMARY = "cq_home_summary_cache_v2";
+  const CACHE_KEY_TOP3 = "cq_home_top3_cache_v2";
 
   const getCachedSummary = () => {
     try {
       const saved = sessionStorage.getItem(CACHE_KEY_SUMMARY);
-      return saved ? JSON.parse(saved) : DEFAULT_SUMMARY;
+      return saved ? JSON.parse(saved) : { totalClinics: null, openClinics: null, closedClinics: null };
     } catch {
-      return DEFAULT_SUMMARY;
+      return { totalClinics: null, openClinics: null, closedClinics: null };
     }
   };
 
   const getCachedTop3 = () => {
     try {
       const saved = sessionStorage.getItem(CACHE_KEY_TOP3);
-      return saved ? JSON.parse(saved) : DEFAULT_TOP3;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return DEFAULT_TOP3;
+      return [];
     }
   };
 
@@ -57,7 +49,7 @@ export default function Home() {
   const [allClinicsAlphabetical, setAllClinicsAlphabetical] = useState<any[]>([]);
   const [results, setResults] = useState<any[]>([]);
   const [summary, setSummary] = useState(cachedSummary);
-  const [loading, setLoading] = useState(false); // Render instantly with fallbacks
+  const [loading, setLoading] = useState(cachedSummary.totalClinics === null);
   const [searching, setSearching] = useState(false);
   const [search, setSearch] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -399,7 +391,7 @@ export default function Home() {
                   <Building2 className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  {loading && summary.totalClinics === 0 ? (
+                  {summary.totalClinics === null || loading ? (
                     <div className="flex items-center gap-1.5 py-1">
                       <Loader2 className="w-5 h-5 text-[#00a6d6] animate-spin" />
                     </div>
@@ -420,7 +412,7 @@ export default function Home() {
                   <DoorOpen className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  {loading && summary.totalClinics === 0 ? (
+                  {summary.openClinics === null || loading ? (
                     <div className="flex items-center gap-1.5 py-1">
                       <Loader2 className="w-5 h-5 text-[#059669] animate-spin" />
                     </div>
@@ -441,7 +433,7 @@ export default function Home() {
                   <DoorClosed className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  {loading && summary.totalClinics === 0 ? (
+                  {summary.closedClinics === null || loading ? (
                     <div className="flex items-center gap-1.5 py-1">
                       <Loader2 className="w-5 h-5 text-[#ef4444] animate-spin" />
                     </div>
