@@ -205,14 +205,12 @@ tokenSchema.index({ clinicId: 1, department: 1, status: 1 });
 tokenSchema.index({ clinicId: 1, sessionDate: 1, department: 1, tokenNumber: -1 });
 tokenSchema.index({ tokenNumber: 1 });
 
-userSchema.index({ email: 1 });
 userSchema.index({ clinicId: 1 });
 
 const dailyCounterSchema = new mongoose.Schema({
   key: { type: String, required: true, unique: true },
   seq: { type: Number, default: 0 }
 });
-dailyCounterSchema.index({ key: 1 });
 
 const Clinic       = mongoose.model('Clinic',       clinicSchema);
 const User         = mongoose.model('User',         userSchema);
