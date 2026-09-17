@@ -77,32 +77,28 @@ export default function Home() {
 
   const loadHome = async () => {
     try {
-      // Only show skeleton loading if we have no cached data at all
       if (top3.length === 0) {
         setLoading(true);
       }
       setError("");
 
-      // Fetch Summary and Top 3 Clinics in parallel for ultra-fast rendering
-      const [sum, top] = await Promise.all([
+      // Fetch Summary, Top 3 Clinics, and All Clinics in parallel for complete synchronization
+      const [sum, top, all] = await Promise.all([
         fetchHomeSummary(),
         fetchTop3Clinics(),
+        searchClinics(""),
       ]);
 
       setSummary(sum);
       setTop3(top);
+      setAllClinicsAlphabetical(all);
       setLoading(false);
 
-      // Save to cache for instant future loads
+      // Save to cache
       try {
         sessionStorage.setItem(CACHE_KEY_SUMMARY, JSON.stringify(sum));
         sessionStorage.setItem(CACHE_KEY_TOP3, JSON.stringify(top));
       } catch {}
-
-      // Non-blocking background fetch for search dropdown list
-      searchClinics("").then((all) => {
-        setAllClinicsAlphabetical(all);
-      }).catch(() => {});
     } catch {
       if (top3.length === 0) {
         setError("Failed to load. Is the server running?");
@@ -202,6 +198,12 @@ export default function Home() {
         description: `${clinicName} (${doctorName}) is now live.`,
       });
 
+      // Clear cache so newly created clinic is immediately fetched fresh
+      try {
+        sessionStorage.removeItem(CACHE_KEY_SUMMARY);
+        sessionStorage.removeItem(CACHE_KEY_TOP3);
+      } catch {}
+
       setClinicName("");
       setDoctorName("");
       setClinicPhone("");
@@ -209,7 +211,7 @@ export default function Home() {
       setClinicStatus("Open");
       setShowAddClinicModal(false);
 
-      loadHome();
+      await loadHome();
     } catch (err: any) {
       toast({ title: err.message || "Failed to add clinic", variant: "destructive" });
     } finally {

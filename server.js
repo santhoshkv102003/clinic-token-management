@@ -276,10 +276,7 @@ async function seedMongoData() {
       );
     }
 
-    // ── Cleanup old/stale clinics outside C001..C060 range ──────────────────────
-    const validIds = INITIAL_CLINICS.map(c => c.clinicId);
-    await Clinic.deleteMany({ clinicId: { $nin: validIds } });
-    await User.deleteMany({ role: 'CLINIC_ADMIN', clinicId: { $nin: validIds } });
+    // ── Upsert initial 60 clinics (C001 to C060) without wiping user added clinics ──────
 
     // ── Upsert all 60 clinics (C001 to C060) ───────────────────────────────────
     let upserted = 0;
@@ -1088,6 +1085,7 @@ app.post('/api/clinics', authMiddleware, requireSuperAdmin, async (req, res) => 
       phone:       phone   || '',
       address:     address || '',
       status:      status  || 'Open',
+      isActive:    true,
       featured:    featured || false,
       currentToken: 0,
       createdAt:   new Date(),
