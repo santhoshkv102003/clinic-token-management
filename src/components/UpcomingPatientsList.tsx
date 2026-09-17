@@ -33,7 +33,7 @@ export function UpcomingPatientsList({ onBack }: UpcomingPatientsListProps) {
     <div 
       className="fixed inset-0 flex flex-col items-center justify-center py-8"
       style={{
-        backgroundImage: "url('/DeWatermark.ai_1752809220809.jpeg')",
+        backgroundImage: "url('/modern-clinic-exterior.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat"

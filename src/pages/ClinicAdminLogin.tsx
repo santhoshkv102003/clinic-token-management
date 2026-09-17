@@ -56,13 +56,15 @@ export default function ClinicAdminLogin() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4"
+      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
       style={{
-        backgroundImage: "url('/DeWatermark.ai_1752809220809.jpeg')",
-        backgroundSize: "cover", backgroundPosition: "center",
+        backgroundImage: "url('/modern-clinic-exterior.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
       }}
     >
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-md" />
+      <div className="absolute inset-0 bg-white/25" />
 
       <div className="relative z-10 w-full max-w-sm px-4">
         <Button 
@@ -85,13 +87,13 @@ export default function ClinicAdminLogin() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
               <div className="space-y-1">
-                <Label htmlFor="clinic-id">Clinic ID (e.g. C025)</Label>
+                <Label htmlFor="clinic-id">Clinic ID</Label>
                 <Input
                   id="clinic-id"
                   type="text"
                   value={clinicId}
                   onChange={e => setClinicId(e.target.value)}
-                  placeholder="C025"
+                  placeholder="Enter the Clinic ID"
                   autoComplete="off"
                 />
               </div>
@@ -102,7 +104,7 @@ export default function ClinicAdminLogin() {
                   type="text"
                   value={emailOrUser}
                   onChange={e => setEmailOrUser(e.target.value)}
-                  placeholder="san025@gmail.com"
+                  placeholder="Enter the Email"
                   autoComplete="off"
                 />
               </div>
@@ -113,7 +115,7 @@ export default function ClinicAdminLogin() {
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="Enter password"
+                  placeholder="Enter the password"
                   required
                   autoComplete="current-password"
                 />

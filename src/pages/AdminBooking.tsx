@@ -17,7 +17,7 @@ const AdminBooking = () => {
     <div
       className="min-h-screen bg-background flex flex-col items-center justify-center py-8"
       style={{
-        backgroundImage: "url('/DeWatermark.ai_1752809220809.jpeg')",
+        backgroundImage: "url('/modern-clinic-exterior.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat"

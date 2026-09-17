@@ -430,7 +430,7 @@ export default function Home() {
                 autoComplete="off"
                 value={adminEmail}
                 onChange={(e) => setAdminEmail(e.target.value)}
-                placeholder="Enter mail id"
+                placeholder="Enter the mailid"
                 className="rounded-xl border-slate-200"
               />
             </div>
@@ -444,7 +444,7 @@ export default function Home() {
                 autoComplete="new-password"
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
-                placeholder="Enter password"
+                placeholder="Enter the password"
                 className="rounded-xl border-slate-200"
               />
             </div>

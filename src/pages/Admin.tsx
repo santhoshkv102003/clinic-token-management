@@ -39,13 +39,16 @@ export default function AdminLogin() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center"
+      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
       style={{
-        backgroundImage: "url('/DeWatermark.ai_1752809220809.jpeg')",
-        backgroundSize: "cover", backgroundPosition: "center",
+        backgroundImage: "url('/modern-clinic-exterior.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
       }}
     >
-      <div className="w-full max-w-sm px-4">
+      <div className="absolute inset-0 bg-white/25" />
+      <div className="relative z-10 w-full max-w-sm px-4">
         <Card className="bg-card/90 backdrop-blur-sm shadow-xl">
           <CardHeader className="text-center pb-2">
             <div className="mx-auto w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-3">
@@ -64,7 +67,7 @@ export default function AdminLogin() {
                   name="admin_login_email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="Enter mail id"
+                  placeholder="Enter the mailid"
                   required
                   autoComplete="off"
                 />
@@ -77,7 +80,7 @@ export default function AdminLogin() {
                   name="admin_login_password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="Enter password"
+                  placeholder="Enter the password"
                   required
                   autoComplete="new-password"
                 />

@@ -53,77 +53,77 @@ export function getClinicUsername(clinicName, clinicId) {
 }
 
 const INITIAL_CLINICS = [
-  // ── CHENNAI (C010 to C019) ──
-  { clinicId: 'C010', clinicName: 'Dr.Santhosh Health Center', doctorName: 'Santhosh', city: 'Chennai', phone: '044-2456010', address: 'Chennai, Tamil Nadu', status: 'Open', featured: true, currentToken: 0 },
-  { clinicId: 'C011', clinicName: 'Dr.Karthi Prime Clinic',    doctorName: 'Karthi',   city: 'Chennai', phone: '044-2456011', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C012', clinicName: 'Dr.Dev LifeCare Clinic',    doctorName: 'Dev',      city: 'Chennai', phone: '044-2456012', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C013', clinicName: 'Dr.Pugazh Medical Centre',  doctorName: 'Pugazh',   city: 'Chennai', phone: '044-2456013', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C014', clinicName: 'Maambalam Health Centre',   doctorName: 'Maambalam',city: 'Chennai', phone: '044-2456014', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C015', clinicName: 'Rithika Care Clinic',       doctorName: 'Rithika',  city: 'Chennai', phone: '044-2456015', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C016', clinicName: 'Maha Wellness Clinic',      doctorName: 'Maha',     city: 'Chennai', phone: '044-2456016', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C017', clinicName: 'Vels Family Clinic',        doctorName: 'Vels',     city: 'Chennai', phone: '044-2456017', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C018', clinicName: 'SR Prime Care',             doctorName: 'Praba',    city: 'Chennai', phone: '044-2456018', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C019', clinicName: 'KP Multicare Clinic',       doctorName: 'Keerthi',  city: 'Chennai', phone: '044-2456019', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  // ── CHENNAI (C001 to C010) ──
+  { clinicId: 'C001', clinicName: 'Dr.Santhosh Health Center', doctorName: 'Santhosh', city: 'Chennai', phone: '044-2456001', address: 'Chennai, Tamil Nadu', status: 'Open', featured: true, currentToken: 0 },
+  { clinicId: 'C002', clinicName: 'Dr.Karthi Prime Clinic',    doctorName: 'Karthi',   city: 'Chennai', phone: '044-2456002', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C003', clinicName: 'Dr.Dev LifeCare Clinic',    doctorName: 'Dev',      city: 'Chennai', phone: '044-2456003', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C004', clinicName: 'Dr.Pugazh Medical Centre',  doctorName: 'Pugazh',   city: 'Chennai', phone: '044-2456004', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C005', clinicName: 'Maambalam Health Centre',   doctorName: 'Maambalam',city: 'Chennai', phone: '044-2456005', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C006', clinicName: 'Rithika Care Clinic',       doctorName: 'Rithika',  city: 'Chennai', phone: '044-2456006', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C007', clinicName: 'Maha Wellness Clinic',      doctorName: 'Maha',     city: 'Chennai', phone: '044-2456007', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C008', clinicName: 'Vels Family Clinic',        doctorName: 'Vels',     city: 'Chennai', phone: '044-2456008', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C009', clinicName: 'SR Prime Care',             doctorName: 'Praba',    city: 'Chennai', phone: '044-2456009', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C010', clinicName: 'KP Multicare Clinic',       doctorName: 'Keerthi',  city: 'Chennai', phone: '044-2456010', address: 'Chennai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
 
-  // ── COIMBATORE (C020 to C029) ──
-  { clinicId: 'C020', clinicName: 'Dr.Nalam Health Clinic',    doctorName: 'Nalam',    city: 'Coimbatore', phone: '0422-2456020', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: true, currentToken: 0 },
-  { clinicId: 'C021', clinicName: 'Arogya Family Care',        doctorName: 'Aravind',  city: 'Coimbatore', phone: '0422-2456021', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C022', clinicName: 'Dr.Kavin Medical Centre',   doctorName: 'Kavin',    city: 'Coimbatore', phone: '0422-2456022', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C023', clinicName: 'Prime Health Point',        doctorName: 'Divya',    city: 'Coimbatore', phone: '0422-2456023', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C024', clinicName: 'Dr.Rajesh Care Centre',     doctorName: 'Rajesh',   city: 'Coimbatore', phone: '0422-2456024', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C025', clinicName: 'Anitha Wellness Centre',    doctorName: 'Anitha',   city: 'Coimbatore', phone: '0422-2456025', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C026', clinicName: 'Dr.Suresh LifeCare Clinic', doctorName: 'Suresh',   city: 'Coimbatore', phone: '0422-2456026', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C027', clinicName: 'Family Health Hub',         doctorName: 'Priya',    city: 'Coimbatore', phone: '0422-2456027', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C028', clinicName: 'Dr.Mohan Prime Health',     doctorName: 'Mohan',    city: 'Coimbatore', phone: '0422-2456028', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C029', clinicName: 'Dr.Kavya Medical Care',     doctorName: 'Kavya',    city: 'Coimbatore', phone: '0422-2456029', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  // ── COIMBATORE (C011 to C020) ──
+  { clinicId: 'C011', clinicName: 'Dr.Nalam Health Clinic',    doctorName: 'Nalam',    city: 'Coimbatore', phone: '0422-2456011', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: true, currentToken: 0 },
+  { clinicId: 'C012', clinicName: 'Arogya Family Care',        doctorName: 'Aravind',  city: 'Coimbatore', phone: '0422-2456012', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C013', clinicName: 'Dr.Kavin Medical Centre',   doctorName: 'Kavin',    city: 'Coimbatore', phone: '0422-2456013', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C014', clinicName: 'Prime Health Point',        doctorName: 'Divya',    city: 'Coimbatore', phone: '0422-2456014', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C015', clinicName: 'Dr.Rajesh Care Centre',     doctorName: 'Rajesh',   city: 'Coimbatore', phone: '0422-2456015', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C016', clinicName: 'Anitha Wellness Centre',    doctorName: 'Anitha',   city: 'Coimbatore', phone: '0422-2456016', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C017', clinicName: 'Dr.Suresh LifeCare Clinic', doctorName: 'Suresh',   city: 'Coimbatore', phone: '0422-2456017', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C018', clinicName: 'Family Health Hub',         doctorName: 'Priya',    city: 'Coimbatore', phone: '0422-2456018', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C019', clinicName: 'Dr.Mohan Prime Health',     doctorName: 'Mohan',    city: 'Coimbatore', phone: '0422-2456019', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C020', clinicName: 'Dr.Kavya Medical Care',     doctorName: 'Kavya',    city: 'Coimbatore', phone: '0422-2456020', address: 'Coimbatore, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
 
-  // ── MADURAI (C030 to C039) ──
-  { clinicId: 'C030', clinicName: 'Dr.Arogya Health Centre',   doctorName: 'Arogya',   city: 'Madurai', phone: '0452-2456030', address: 'Madurai, Tamil Nadu', status: 'Open', featured: true, currentToken: 0 },
-  { clinicId: 'C031', clinicName: 'Sai Care Clinic',           doctorName: 'Sai',      city: 'Madurai', phone: '0452-2456031', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C032', clinicName: 'Dr.Vijay Family Clinic',    doctorName: 'Vijay',    city: 'Madurai', phone: '0452-2456032', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C033', clinicName: 'Harish Medical Centre',     doctorName: 'Harish',   city: 'Madurai', phone: '0452-2456033', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C034', clinicName: 'Dr.Lakshmi Care Centre',    doctorName: 'Lakshmi',  city: 'Madurai', phone: '0452-2456034', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C035', clinicName: 'Bala Health Clinic',        doctorName: 'Bala',     city: 'Madurai', phone: '0452-2456035', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C036', clinicName: 'Dr.Deepak Wellness Clinic', doctorName: 'Deepak',   city: 'Madurai', phone: '0452-2456036', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C037', clinicName: 'Rekha Prime Care',          doctorName: 'Rekha',    city: 'Madurai', phone: '0452-2456037', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C038', clinicName: 'Dr.Manikandan Family Care', doctorName: 'Manikandan', city: 'Madurai', phone: '0452-2456038', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C039', clinicName: 'Swetha Health Point',       doctorName: 'Swetha',   city: 'Madurai', phone: '0452-2456039', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  // ── MADURAI (C021 to C030) ──
+  { clinicId: 'C021', clinicName: 'Dr.Arogya Health Centre',   doctorName: 'Arogya',   city: 'Madurai', phone: '0452-2456021', address: 'Madurai, Tamil Nadu', status: 'Open', featured: true, currentToken: 0 },
+  { clinicId: 'C022', clinicName: 'Sai Care Clinic',           doctorName: 'Sai',      city: 'Madurai', phone: '0452-2456022', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C023', clinicName: 'Dr.Vijay Family Clinic',    doctorName: 'Vijay',    city: 'Madurai', phone: '0452-2456023', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C024', clinicName: 'Harish Medical Centre',     doctorName: 'Harish',   city: 'Madurai', phone: '0452-2456024', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C025', clinicName: 'Dr.Lakshmi Care Centre',    doctorName: 'Lakshmi',  city: 'Madurai', phone: '0452-2456025', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C026', clinicName: 'Bala Health Clinic',        doctorName: 'Bala',     city: 'Madurai', phone: '0452-2456026', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C027', clinicName: 'Dr.Deepak Wellness Clinic', doctorName: 'Deepak',   city: 'Madurai', phone: '0452-2456027', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C028', clinicName: 'Rekha Prime Care',          doctorName: 'Rekha',    city: 'Madurai', phone: '0452-2456028', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C029', clinicName: 'Dr.Manikandan Family Care', doctorName: 'Manikandan', city: 'Madurai', phone: '0452-2456029', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C030', clinicName: 'Swetha Health Point',       doctorName: 'Swetha',   city: 'Madurai', phone: '0452-2456030', address: 'Madurai, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
 
-  // ── TIRUNELVELI (C040 to C049) ──
-  { clinicId: 'C040', clinicName: 'Dr.Amar LifeCare Centre',   doctorName: 'Amar',     city: 'Tirunelveli', phone: '0462-2456040', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C041', clinicName: 'Bharath Medical Care',      doctorName: 'Bharath',  city: 'Tirunelveli', phone: '0462-2456041', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C042', clinicName: 'Dr.Chitra Health Clinic',   doctorName: 'Chitra',   city: 'Tirunelveli', phone: '0462-2456042', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C043', clinicName: 'Dinesh Family Health',      doctorName: 'Dinesh',   city: 'Tirunelveli', phone: '0462-2456043', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C044', clinicName: 'Dr.Ezhil Care Clinic',      doctorName: 'Ezhil',    city: 'Tirunelveli', phone: '0462-2456044', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C045', clinicName: 'Faizal Wellness Centre',    doctorName: 'Faizal',   city: 'Tirunelveli', phone: '0462-2456045', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C046', clinicName: 'Dr.Gokul Prime Clinic',     doctorName: 'Gokul',    city: 'Tirunelveli', phone: '0462-2456046', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C047', clinicName: 'Hema Family Care',          doctorName: 'Hema',     city: 'Tirunelveli', phone: '0462-2456047', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C048', clinicName: 'Dr.Indhu Medical Centre',   doctorName: 'Indhu',    city: 'Tirunelveli', phone: '0462-2456048', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C049', clinicName: 'Jeeva Health Point',        doctorName: 'Jeeva',    city: 'Tirunelveli', phone: '0462-2456049', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  // ── TIRUNELVELI (C031 to C040) ──
+  { clinicId: 'C031', clinicName: 'Dr.Amar LifeCare Centre',   doctorName: 'Amar',     city: 'Tirunelveli', phone: '0462-2456031', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C032', clinicName: 'Bharath Medical Care',      doctorName: 'Bharath',  city: 'Tirunelveli', phone: '0462-2456032', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C033', clinicName: 'Dr.Chitra Health Clinic',   doctorName: 'Chitra',   city: 'Tirunelveli', phone: '0462-2456033', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C034', clinicName: 'Dinesh Family Health',      doctorName: 'Dinesh',   city: 'Tirunelveli', phone: '0462-2456034', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C035', clinicName: 'Dr.Ezhil Care Clinic',      doctorName: 'Ezhil',    city: 'Tirunelveli', phone: '0462-2456035', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C036', clinicName: 'Faizal Wellness Centre',    doctorName: 'Faizal',   city: 'Tirunelveli', phone: '0462-2456036', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C037', clinicName: 'Dr.Gokul Prime Clinic',     doctorName: 'Gokul',    city: 'Tirunelveli', phone: '0462-2456037', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C038', clinicName: 'Hema Family Care',          doctorName: 'Hema',     city: 'Tirunelveli', phone: '0462-2456038', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C039', clinicName: 'Dr.Indhu Medical Centre',   doctorName: 'Indhu',    city: 'Tirunelveli', phone: '0462-2456039', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C040', clinicName: 'Jeeva Health Point',        doctorName: 'Jeeva',    city: 'Tirunelveli', phone: '0462-2456040', address: 'Tirunelveli, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
 
-  // ── KANNIYAKUMARI (C050 to C059) ──
-  { clinicId: 'C050', clinicName: 'Dr.Kannan Health Centre',   doctorName: 'Kannan',   city: 'Kanniyakumari', phone: '04652-2456050', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C051', clinicName: 'Latha Care Clinic',         doctorName: 'Latha',    city: 'Kanniyakumari', phone: '04652-2456051', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C052', clinicName: 'Dr.Murali Medical Care',    doctorName: 'Murali',   city: 'Kanniyakumari', phone: '04652-2456052', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C053', clinicName: 'Nithya Family Clinic',      doctorName: 'Nithya',   city: 'Kanniyakumari', phone: '04652-2456053', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C054', clinicName: 'Dr.Oviya Wellness Clinic',  doctorName: 'Oviya',    city: 'Kanniyakumari', phone: '04652-2456054', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C055', clinicName: 'Prakash Prime Care',        doctorName: 'Prakash',  city: 'Kanniyakumari', phone: '04652-2456055', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C056', clinicName: 'Dr.Ramesh LifeCare',        doctorName: 'Ramesh',   city: 'Kanniyakumari', phone: '04652-2456056', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C057', clinicName: 'Sindhu Health Centre',      doctorName: 'Sindhu',   city: 'Kanniyakumari', phone: '04652-2456057', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C058', clinicName: 'Dr.Tamilselvan Medical Centre', doctorName: 'Tamilselvan', city: 'Kanniyakumari', phone: '04652-2456058', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C059', clinicName: 'Uma Family Health',         doctorName: 'Uma',      city: 'Kanniyakumari', phone: '04652-2456059', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  // ── KANNIYAKUMARI (C041 to C050) ──
+  { clinicId: 'C041', clinicName: 'Dr.Kannan Health Centre',   doctorName: 'Kannan',   city: 'Kanniyakumari', phone: '04652-2456041', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C042', clinicName: 'Latha Care Clinic',         doctorName: 'Latha',    city: 'Kanniyakumari', phone: '04652-2456042', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C043', clinicName: 'Dr.Murali Medical Care',    doctorName: 'Murali',   city: 'Kanniyakumari', phone: '04652-2456043', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C044', clinicName: 'Nithya Family Clinic',      doctorName: 'Nithya',   city: 'Kanniyakumari', phone: '04652-2456044', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C045', clinicName: 'Dr.Oviya Wellness Clinic',  doctorName: 'Oviya',    city: 'Kanniyakumari', phone: '04652-2456045', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C046', clinicName: 'Prakash Prime Care',        doctorName: 'Prakash',  city: 'Kanniyakumari', phone: '04652-2456046', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C047', clinicName: 'Dr.Ramesh LifeCare',        doctorName: 'Ramesh',   city: 'Kanniyakumari', phone: '04652-2456047', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C048', clinicName: 'Sindhu Health Centre',      doctorName: 'Sindhu',   city: 'Kanniyakumari', phone: '04652-2456048', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C049', clinicName: 'Dr.Tamilselvan Medical Centre', doctorName: 'Tamilselvan', city: 'Kanniyakumari', phone: '04652-2456049', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C050', clinicName: 'Uma Family Health',         doctorName: 'Uma',      city: 'Kanniyakumari', phone: '04652-2456050', address: 'Kanniyakumari, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
 
-  // ── TRICHY (C060 to C069) ──
-  { clinicId: 'C060', clinicName: 'Dr.Vasanth Care Clinic',    doctorName: 'Vasanth',  city: 'Trichy', phone: '0431-2456060', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C061', clinicName: 'Yamini Health Centre',      doctorName: 'Yamini',   city: 'Trichy', phone: '0431-2456061', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C062', clinicName: 'Dr.Akash Prime Health',     doctorName: 'Akash',    city: 'Trichy', phone: '0431-2456062', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C063', clinicName: 'Bhavani Medical Centre',    doctorName: 'Bhavani',  city: 'Trichy', phone: '0431-2456063', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C064', clinicName: 'Dr.Krishna Family Care',    doctorName: 'Krishna',  city: 'Trichy', phone: '0431-2456064', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C065', clinicName: 'Dharani Wellness Centre',   doctorName: 'Dharani',  city: 'Trichy', phone: '0431-2456065', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C066', clinicName: 'Dr.Elango Health Clinic',   doctorName: 'Elango',   city: 'Trichy', phone: '0431-2456066', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C067', clinicName: 'Gayathri Care Centre',      doctorName: 'Gayathri', city: 'Trichy', phone: '0431-2456067', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C068', clinicName: 'Dr.Hari Medical Care',      doctorName: 'Hari',     city: 'Trichy', phone: '0431-2456068', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
-  { clinicId: 'C069', clinicName: 'Ishwar LifeCare Clinic',    doctorName: 'Ishwar',   city: 'Trichy', phone: '0431-2456069', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  // ── TRICHY (C051 to C060) ──
+  { clinicId: 'C051', clinicName: 'Dr.Vasanth Care Clinic',    doctorName: 'Vasanth',  city: 'Trichy', phone: '0431-2456051', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C052', clinicName: 'Yamini Health Centre',      doctorName: 'Yamini',   city: 'Trichy', phone: '0431-2456052', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C053', clinicName: 'Dr.Akash Prime Health',     doctorName: 'Akash',    city: 'Trichy', phone: '0431-2456053', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C054', clinicName: 'Bhavani Medical Centre',    doctorName: 'Bhavani',  city: 'Trichy', phone: '0431-2456054', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C055', clinicName: 'Dr.Krishna Family Care',    doctorName: 'Krishna',  city: 'Trichy', phone: '0431-2456055', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C056', clinicName: 'Dharani Wellness Centre',   doctorName: 'Dharani',  city: 'Trichy', phone: '0431-2456056', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C057', clinicName: 'Dr.Elango Health Clinic',   doctorName: 'Elango',   city: 'Trichy', phone: '0431-2456057', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C058', clinicName: 'Gayathri Care Centre',      doctorName: 'Gayathri', city: 'Trichy', phone: '0431-2456058', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C059', clinicName: 'Dr.Hari Medical Care',      doctorName: 'Hari',     city: 'Trichy', phone: '0431-2456059', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
+  { clinicId: 'C060', clinicName: 'Ishwar LifeCare Clinic',    doctorName: 'Ishwar',   city: 'Trichy', phone: '0431-2456060', address: 'Trichy, Tamil Nadu', status: 'Open', featured: false, currentToken: 0 },
 ];
 
 const DEFAULT_PASSWORD = 'sr1011';
@@ -276,11 +276,12 @@ async function seedMongoData() {
       );
     }
 
-    // ── Upsert all 60 clinics (safe to run even if DB already has data) ───────
-    // Using upsert-by-clinicId means:
-    //  - New DB → all 60 are inserted
-    //  - Existing DB with stale data → clinic names / emails are corrected in-place
-    //  - Existing DB already correct → no-op (MongoDB only updates if values differ)
+    // ── Cleanup old/stale clinics outside C001..C060 range ──────────────────────
+    const validIds = INITIAL_CLINICS.map(c => c.clinicId);
+    await Clinic.deleteMany({ clinicId: { $nin: validIds } });
+    await User.deleteMany({ role: 'CLINIC_ADMIN', clinicId: { $nin: validIds } });
+
+    // ── Upsert all 60 clinics (C001 to C060) ───────────────────────────────────
     let upserted = 0;
     for (const clinic of INITIAL_CLINICS) {
       const email = generateClinicEmail(clinic.clinicName, clinic.clinicId);
@@ -304,11 +305,10 @@ async function seedMongoData() {
             createdAt:    new Date()
           }
         },
-        { upsert: true, returnDocument: 'before' }   // 'before' → returns pre-update doc (null if inserted)
+        { upsert: true, returnDocument: 'before' }
       );
-      if (!result) upserted++;   // null means it was an insert
+      if (!result) upserted++;
 
-      // Mirror the clinic admin user
       await User.findOneAndUpdate(
         { clinicId: clinic.clinicId },
         { $set: { name: clinic.doctorName, email, password: hash, role: 'CLINIC_ADMIN', clinicId: clinic.clinicId } },
@@ -319,7 +319,7 @@ async function seedMongoData() {
     if (upserted > 0) {
       console.log(`🏥 Seeded ${upserted} new clinic(s) into MongoDB Atlas (${INITIAL_CLINICS.length - upserted} already existed)`);
     } else {
-      console.log(`🏥 All ${INITIAL_CLINICS.length} clinics already present in MongoDB Atlas — verified`);
+      console.log(`🏥 All ${INITIAL_CLINICS.length} clinics (C001-C060) verified in MongoDB Atlas`);
     }
 
     // ── Super Admins (always upsert) ──────────────────────────────────────────
@@ -340,15 +340,8 @@ async function seedMongoData() {
   }
 }
 
-/**
- * Returns the next available Clinic ID by finding the highest existing numeric
- * ID and adding 1.  IDs are NEVER reused after deletion.
- *
- * Floor is C010 (i.e. we never go below C010 for initial seeding).
- * After C069 the sequence continues: C070, C071, …
- */
 export async function generateClinicId() {
-  let highestNum = 9;
+  let highestNum = 60;
 
   if (isMongoReady()) {
     try {
@@ -373,18 +366,21 @@ export async function generateClinicId() {
 // ─── Resilient Data Access Helpers ───────────────────────────────────────────
 
 async function dbGetClinics(query = {}) {
+  let list = [];
   if (isMongoReady()) {
     try {
-      return await Clinic.find(query).sort({ clinicName: 1 }).lean();
+      list = await Clinic.find(query).lean();
     } catch (e) {
       console.warn('dbGetClinics query warning:', e.message);
     }
   }
-  let list = inMemoryClinics;
-  if (query.clinicId) list = list.filter(c => c.clinicId === query.clinicId);
-  if (query.featured !== undefined) list = list.filter(c => c.featured === query.featured);
-  if (query.status) list = list.filter(c => c.status === query.status);
-  return list.sort((a, b) => a.clinicName.localeCompare(b.clinicName));
+  if (!list.length) {
+    list = [...inMemoryClinics];
+    if (query.clinicId) list = list.filter(c => c.clinicId === query.clinicId);
+    if (query.featured !== undefined) list = list.filter(c => c.featured === query.featured);
+    if (query.status) list = list.filter(c => c.status === query.status);
+  }
+  return list.sort((a, b) => (a.clinicId || '').localeCompare(b.clinicId || '', undefined, { numeric: true }));
 }
 
 async function dbGetClinic(clinicId) {
@@ -778,8 +774,17 @@ app.get('/api/clinics/summary', async (req, res) => {
 app.get('/api/clinics/top3', async (req, res) => {
   try {
     const all = await dbGetClinics();
-    const enriched = await Promise.all(all.map(enrichClinic));
-    enriched.sort((a, b) => (b.waitingCount + b.servingCount) - (a.waitingCount + a.servingCount));
+    const active = all.filter(c => c.isActive !== false);
+    const enriched = await Promise.all(active.map(enrichClinic));
+    enriched.sort((a, b) => {
+      // 1. Featured clinics first
+      if (b.featured !== a.featured) return b.featured ? 1 : -1;
+      // 2. Highest active queue activity (waiting + serving)
+      const activityDiff = (b.waitingCount + b.servingCount) - (a.waitingCount + a.servingCount);
+      if (activityDiff !== 0) return activityDiff;
+      // 3. Clinic ID order (C001, C002...)
+      return (a.clinicId || '').localeCompare(b.clinicId || '', undefined, { numeric: true });
+    });
     res.json(enriched.slice(0, 3));
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -1397,6 +1402,9 @@ app.use(express.static(path.join(__dirname, 'dist')));
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/socket.io')) {
     return next();
+  }
+  if (/\.[a-z0-9]+$/i.test(req.path)) {
+    return res.status(404).send('Not found');
   }
   const indexPath = path.join(__dirname, 'dist', 'index.html');
   res.sendFile(indexPath, (err) => {

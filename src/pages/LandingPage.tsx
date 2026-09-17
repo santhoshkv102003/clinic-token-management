@@ -8,14 +8,15 @@ export default function LandingPage() {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background/95 to-primary/5"
+      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
       style={{
-        backgroundImage: "url('/DeWatermark.ai_1752809220809.jpeg')",
+        backgroundImage: "url('/modern-clinic-exterior.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
       }}
     >
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-md" />
+      <div className="absolute inset-0 bg-white/25" />
 
       <div className="relative z-10 w-full max-w-4xl space-y-8 text-center px-4">
         <div className="space-y-3">

@@ -49,13 +49,15 @@ export default function SuperAdminLogin() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4"
+      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
       style={{
-        backgroundImage: "url('/DeWatermark.ai_1752809220809.jpeg')",
-        backgroundSize: "cover", backgroundPosition: "center",
+        backgroundImage: "url('/modern-clinic-exterior.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
       }}
     >
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-md" />
+      <div className="absolute inset-0 bg-white/25" />
 
       <div className="relative z-10 w-full max-w-sm px-4">
         <Button 
@@ -84,7 +86,7 @@ export default function SuperAdminLogin() {
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="superadmin@clinic.com"
+                  placeholder="Enter the Email"
                   required
                   autoComplete="off"
                 />
@@ -96,7 +98,7 @@ export default function SuperAdminLogin() {
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="Enter password"
+                  placeholder="Enter the password"
                   required
                   autoComplete="current-password"
                 />

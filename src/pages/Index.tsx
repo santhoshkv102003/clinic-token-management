@@ -119,7 +119,7 @@ const Index = () => {
     <div
       className="min-h-screen bg-background"
       style={{
-        backgroundImage: "url('/DeWatermark.ai_1752809220809.jpeg')",
+        backgroundImage: "url('/modern-clinic-exterior.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
